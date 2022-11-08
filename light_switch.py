@@ -14,33 +14,69 @@ class Timer():
 t = Timer()
 
 
+
+
+
+
+
 import numpy as np
 
+
+logging = True
+
+def log(s):
+    if logging:
+        print(s)
 
 
 def print_matrix(m):
     res = '\n'.join([' '.join(map(str, l)) for l in m])
-    print(res)
+    log(res)
 
 
 def solve_brute(n, switches):
     m = len(switches)
+    digit_sum = [sum(1 if d == '1' else 0 for d in bin(i)) for i in range(0, 2**m - 1)]
 
-    switches_a = [[1 if i in s else 0 for s in switches] for i in range(0, n)]
+    return True
+
+    # switches_a = [[1 if i in s else 0 for s in switches] for i in range(0, n)]
+
+    switches_a = [[0 for j in range(0, m)] for i in range(0, n)]
+    for j, s in enumerate(switches):
+        for i in s:
+            switches_a[i][j] = 1
+
+
+    bins = [sum(0 if d == 0 else 2 ** i for i, d in enumerate(reversed(l))) for l in switches_a]
+
+    for b in bins:
+        log(bin(b))
 
     print_matrix(switches_a)
 
+
     all_on = [1 for i in range(0, m)]
 
-    res = np.matmul(switches_a, all_on)
+    all_on_b = int('1' * m, 2)
 
-    print(res)
 
-    res = [i % 2 for i in res]
+    all_good = 2**m - 1
 
-    print(res)
+    print("=====================")
+    print(bin(all_good))
 
-    print(len(res))
+
+    for b in bins:
+        print("--------------------------------")
+        print(bin(b))
+        print(bin(b ^ all_good))
+
+
+    for test in range(0, 2**m - 1):
+        if all(b ^ test == all_good for b in bins):
+            return bin(test)
+
 
 
 
@@ -77,6 +113,16 @@ switches = [
 print_matrix(switches)
 
 
-solve_brute(n, switches)
+t.reset()
+
+
+NN = 10
+for i in range(0, NN):
+    res = solve_brute(n, switches)
+
+t.time("Done")
+
+log(res)
+
 
 
