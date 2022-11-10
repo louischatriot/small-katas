@@ -55,6 +55,8 @@ def solve_brute(n, switches):
         if all(digit_sum[b & test] == 1 for b in bins):
             return True
 
+    return False
+
 
 # If light i is entirely determined by pos, return True
 # If it is determined to be not compatible, return False
@@ -123,7 +125,6 @@ def light_switch(n, switches):
 
     for i0 in range(0, n):
         # Making sure we have a 1 at the beginning of the diagonal
-        # TODO: what bout when we don't find a line with a 1
         if switches_a[i0][i0] != 1:
             for ig in range(i0+1, n):
                 if switches_a[ig][i0] == 1:
@@ -134,6 +135,22 @@ def light_switch(n, switches):
                     pos[ig], pos[i0] = pos[i0], pos[ig]
                     break
 
+        # Switch columns if we can't find a suitable line
+        # TODO: keep track of switch number when we switch columns
+        if switches_a[i0][i0] != 1:
+            for jg in range(i0+1, m):
+                if switches_a[i0][jg] == 1:
+                    for i in range(0, n):
+                        swp = switches_a[i][i0]
+                        switches_a[i][i0] = switches_a[i][jg]
+                        switches_a[i][jg] = swp
+
+                    break
+
+        # If no suitable columns either, check RHS value ; if it is not 0 it's a fail
+        if switches_a[i0][i0] == 0:
+            if pos[i0] == 1:
+                return False
 
         # Remove ones in the column
         for i in range(0, n):
@@ -142,28 +159,15 @@ def light_switch(n, switches):
                     switches_a[i] = [(switches_a[i][j] + switches_a[i0][j]) % 2 for j in range(0, m)]
                     pos[i] = (pos[i] + pos[i0]) % 2
 
-
-
-    print("========================================")
-    print("========================================")
-    print_matrix(switches_a)
-
-    print(' '.join(map(str, pos)))
-
-
     pos = pos + [0 for i in range(n, m)]
-
-    print(pos)
-
-    print(len(pos))
-    print(m)
-
     switches_a = get_switch_matrix(n, switches)
 
-    print("%%%%%%%%%%%%%%%%%")
     for i in range(0, n):
         res = sum(pos[j] * switches_a[i][j] for j in range(0, m))
-        print(res % 2)
+        if res % 2 != 1:
+            return False
+
+    return True
 
 
 
@@ -191,14 +195,14 @@ def light_switch(n, switches):
 
 
 # Should be False
-# n = 13
-# switches = [[0, 1, 2, 3, 6, 7, 9], [1, 2, 3, 4, 5, 7, 10, 11, 12], [2, 4, 5, 6, 7, 8, 11, 12], [1, 4, 5, 7, 8], [0, 1, 2, 3, 4, 6, 7, 10, 12], [0, 1, 2, 3, 4, 9, 10, 11, 12], [1, 4, 5, 6, 8, 9, 11, 12], [1, 4, 5, 7, 8, 9, 10], [0, 1, 2, 7, 8, 9, 10, 11], [2, 3, 5, 6, 9, 10, 11, 12], [2, 3, 5, 6, 8, 9, 10, 11, 12], [1, 2, 4, 5, 8, 9, 10, 12], [1, 2, 3, 4, 5, 7, 8, 11, 12], [0, 2, 5, 6, 7, 8, 9, 10, 11, 12], [0, 1, 2, 4, 5, 9, 10, 11, 12]]
+n = 13
+switches = [[0, 1, 2, 3, 6, 7, 9], [1, 2, 3, 4, 5, 7, 10, 11, 12], [2, 4, 5, 6, 7, 8, 11, 12], [1, 4, 5, 7, 8], [0, 1, 2, 3, 4, 6, 7, 10, 12], [0, 1, 2, 3, 4, 9, 10, 11, 12], [1, 4, 5, 6, 8, 9, 11, 12], [1, 4, 5, 7, 8, 9, 10], [0, 1, 2, 7, 8, 9, 10, 11], [2, 3, 5, 6, 9, 10, 11, 12], [2, 3, 5, 6, 8, 9, 10, 11, 12], [1, 2, 4, 5, 8, 9, 10, 12], [1, 2, 3, 4, 5, 7, 8, 11, 12], [0, 2, 5, 6, 7, 8, 9, 10, 11, 12], [0, 1, 2, 4, 5, 9, 10, 11, 12]]
 
 
 
 # Should be True
-n = 12
-switches = [[0, 1, 3, 4, 7, 8, 10, 11], [2, 3, 5, 6, 8, 10, 11], [0, 1, 4, 5, 6, 8, 9, 10], [0, 1, 3, 4, 6, 9, 10, 11], [1, 3, 5, 6, 9, 11], [3, 4, 5, 6, 7, 8, 9, 11], [0, 2, 5, 6, 7, 8, 9, 10, 11], [0, 1, 4, 5, 9, 10, 11], [0, 3, 4, 5, 6, 8, 9, 11], [0, 1, 2, 4, 6, 8, 9, 10, 11], [1, 2, 3, 6, 8, 9, 10, 11], [0, 1, 3, 4, 6, 8, 9, 10, 11], [2, 3, 4, 5, 6, 7, 9, 10, 11], [0, 1, 4, 5, 6, 9, 11], [0, 1, 3, 6, 7, 9, 11], [0, 1, 2, 3, 4, 8, 9, 11], [3, 4, 5, 7, 8, 9, 10, 11], [2, 3, 4, 5, 8, 9], [0, 1, 2, 3, 4, 6, 8], [0, 2, 5, 6, 7, 10, 11], [0, 1, 2, 3, 5, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 11], [0, 1, 2, 3, 4, 6, 7, 9, 11], [0, 2, 3, 4, 7, 8, 9], [1, 3, 5, 6, 7, 8, 9, 10], [0, 3, 5, 7, 8, 9, 10], [1, 3, 4, 6, 8, 9, 10, 11], [3, 6, 7, 8, 9, 11]]
+# n = 12
+# switches = [[0, 1, 3, 4, 7, 8, 10, 11], [2, 3, 5, 6, 8, 10, 11], [0, 1, 4, 5, 6, 8, 9, 10], [0, 1, 3, 4, 6, 9, 10, 11], [1, 3, 5, 6, 9, 11], [3, 4, 5, 6, 7, 8, 9, 11], [0, 2, 5, 6, 7, 8, 9, 10, 11], [0, 1, 4, 5, 9, 10, 11], [0, 3, 4, 5, 6, 8, 9, 11], [0, 1, 2, 4, 6, 8, 9, 10, 11], [1, 2, 3, 6, 8, 9, 10, 11], [0, 1, 3, 4, 6, 8, 9, 10, 11], [2, 3, 4, 5, 6, 7, 9, 10, 11], [0, 1, 4, 5, 6, 9, 11], [0, 1, 3, 6, 7, 9, 11], [0, 1, 2, 3, 4, 8, 9, 11], [3, 4, 5, 7, 8, 9, 10, 11], [2, 3, 4, 5, 8, 9], [0, 1, 2, 3, 4, 6, 8], [0, 2, 5, 6, 7, 10, 11], [0, 1, 2, 3, 5, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 11], [0, 1, 2, 3, 4, 6, 7, 9, 11], [0, 2, 3, 4, 7, 8, 9], [1, 3, 5, 6, 7, 8, 9, 10], [0, 3, 5, 7, 8, 9, 10], [1, 3, 4, 6, 8, 9, 10, 11], [3, 6, 7, 8, 9, 11]]
 
 
 
