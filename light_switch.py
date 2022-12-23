@@ -51,7 +51,7 @@ def solve_brute(n, switches):
     m = len(switches)
     bins = [sum(0 if d == 0 else 2 ** i for i, d in enumerate(reversed(l))) for l in get_switch_matrix(n, switches)]
 
-    for test in range(0, 2**m - 1):
+    for test in range(0, 2**m):
         if all(digit_sum[b & test] == 1 for b in bins):
             return True
 
@@ -120,8 +120,7 @@ def light_switch(n, switches):
 
     switches_a = get_switch_matrix(n, switches)
     pos = [1 for i in range(0, n)]
-
-    print_matrix(switches_a)
+    positions = [i for i in range(0, m)]
 
     for i0 in range(0, n):
         # Making sure we have a 1 at the beginning of the diagonal
@@ -136,10 +135,10 @@ def light_switch(n, switches):
                     break
 
         # Switch columns if we can't find a suitable line
-        # TODO: keep track of switch number when we switch columns
         if switches_a[i0][i0] != 1:
             for jg in range(i0+1, m):
                 if switches_a[i0][jg] == 1:
+                    positions[i0], positions[jg] = positions[jg], positions[i0]
                     for i in range(0, n):
                         swp = switches_a[i][i0]
                         switches_a[i][i0] = switches_a[i][jg]
@@ -163,7 +162,7 @@ def light_switch(n, switches):
     switches_a = get_switch_matrix(n, switches)
 
     for i in range(0, n):
-        res = sum(pos[j] * switches_a[i][j] for j in range(0, m))
+        res = sum(pos[j] * switches_a[i][positions[j]] for j in range(0, m))
         if res % 2 != 1:
             return False
 
@@ -195,14 +194,28 @@ def light_switch(n, switches):
 
 
 # Should be False
-n = 13
-switches = [[0, 1, 2, 3, 6, 7, 9], [1, 2, 3, 4, 5, 7, 10, 11, 12], [2, 4, 5, 6, 7, 8, 11, 12], [1, 4, 5, 7, 8], [0, 1, 2, 3, 4, 6, 7, 10, 12], [0, 1, 2, 3, 4, 9, 10, 11, 12], [1, 4, 5, 6, 8, 9, 11, 12], [1, 4, 5, 7, 8, 9, 10], [0, 1, 2, 7, 8, 9, 10, 11], [2, 3, 5, 6, 9, 10, 11, 12], [2, 3, 5, 6, 8, 9, 10, 11, 12], [1, 2, 4, 5, 8, 9, 10, 12], [1, 2, 3, 4, 5, 7, 8, 11, 12], [0, 2, 5, 6, 7, 8, 9, 10, 11, 12], [0, 1, 2, 4, 5, 9, 10, 11, 12]]
+# n = 13
+# switches = [[0, 1, 2, 3, 6, 7, 9], [1, 2, 3, 4, 5, 7, 10, 11, 12], [2, 4, 5, 6, 7, 8, 11, 12], [1, 4, 5, 7, 8], [0, 1, 2, 3, 4, 6, 7, 10, 12], [0, 1, 2, 3, 4, 9, 10, 11, 12], [1, 4, 5, 6, 8, 9, 11, 12], [1, 4, 5, 7, 8, 9, 10], [0, 1, 2, 7, 8, 9, 10, 11], [2, 3, 5, 6, 9, 10, 11, 12], [2, 3, 5, 6, 8, 9, 10, 11, 12], [1, 2, 4, 5, 8, 9, 10, 12], [1, 2, 3, 4, 5, 7, 8, 11, 12], [0, 2, 5, 6, 7, 8, 9, 10, 11, 12], [0, 1, 2, 4, 5, 9, 10, 11, 12]]
 
 
 
 # Should be True
 # n = 12
 # switches = [[0, 1, 3, 4, 7, 8, 10, 11], [2, 3, 5, 6, 8, 10, 11], [0, 1, 4, 5, 6, 8, 9, 10], [0, 1, 3, 4, 6, 9, 10, 11], [1, 3, 5, 6, 9, 11], [3, 4, 5, 6, 7, 8, 9, 11], [0, 2, 5, 6, 7, 8, 9, 10, 11], [0, 1, 4, 5, 9, 10, 11], [0, 3, 4, 5, 6, 8, 9, 11], [0, 1, 2, 4, 6, 8, 9, 10, 11], [1, 2, 3, 6, 8, 9, 10, 11], [0, 1, 3, 4, 6, 8, 9, 10, 11], [2, 3, 4, 5, 6, 7, 9, 10, 11], [0, 1, 4, 5, 6, 9, 11], [0, 1, 3, 6, 7, 9, 11], [0, 1, 2, 3, 4, 8, 9, 11], [3, 4, 5, 7, 8, 9, 10, 11], [2, 3, 4, 5, 8, 9], [0, 1, 2, 3, 4, 6, 8], [0, 2, 5, 6, 7, 10, 11], [0, 1, 2, 3, 5, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 11], [0, 1, 2, 3, 4, 6, 7, 9, 11], [0, 2, 3, 4, 7, 8, 9], [1, 3, 5, 6, 7, 8, 9, 10], [0, 3, 5, 7, 8, 9, 10], [1, 3, 4, 6, 8, 9, 10, 11], [3, 6, 7, 8, 9, 11]]
+
+
+
+
+
+# Should be True
+# n = 13
+# switches = [[0, 1, 4, 5, 7, 8, 9, 11], [0, 5, 7, 8, 9, 10, 11, 12], [1, 2, 4, 5, 6, 11], [0, 2, 4, 5, 6, 8, 9, 10, 12], [0, 2, 3, 4, 5, 7, 8, 11], [0, 1, 2, 3, 5, 7, 8, 9], [0, 1, 2, 5, 6, 7, 8, 9, 10, 12], [2, 3, 4, 5, 6, 7, 8, 9, 11, 12], [0, 1, 2, 5, 8, 10, 12], [0, 2, 4, 5, 8, 9, 12], [1, 3, 5, 6, 7, 8, 9, 11, 12], [2, 3, 4, 7, 9, 10, 11], [2, 5, 6, 9, 10, 11, 12], [1, 2, 5, 8, 11, 12], [0, 1, 3, 4, 5, 6, 9, 10, 11]]
+
+
+n = 5
+switches = [[0, 1, 2], [1, 2], [1, 2, 3, 4]]
+
+
 
 
 
