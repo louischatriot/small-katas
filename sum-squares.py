@@ -209,7 +209,6 @@ base = [32, 17, 19, 30, 34, 15, 21, 28, 8, 1, 24, 25, 11, 5, 4, 12, 13, 3, 6, 10
 def get_next(base):
     N = len(base)
     new = N+1
-    N = len(base)
 
 
 
@@ -217,17 +216,21 @@ def get_next(base):
     base.insert(10, new)
     base = super_swap(base, 11, 24)
 
+
+    N = len(base)
+
     # Conflict
     c = 24
     if (base[c], base[c+1]) in pairs:
         1/0
 
-    print(base)
-    print(c, base[c])
-    print(c+1, base[c+1])
-
 
     while True:
+        # print("======================================")
+        # print(base)
+        # print("CONFLICT L", c, base[c])
+        # print("CONFLICT R", c+1, base[c+1])
+
         if c+1 != 0 and (base[0], base[c+1]) in pairs:
             res = super_swap(base, 0, c)
             return res
@@ -240,7 +243,9 @@ def get_next(base):
 
         # Checking right of conflict
         for i in range(c+2, N-1):
+            # print(i, base[i])
             if (base[c], base[i]) in pairs:
+                # print("BOOM", i, base[i])
                 if (base[c+1], base[i+1]) in pairs:
                     res = super_swap(base, c+1, i)
                     return res
@@ -254,12 +259,15 @@ def get_next(base):
                     res = super_swap(base, i-1, c)
                     return res
                 else:
-                    # print("match")
-                    # print(i-1, base[i-1])
-                    # print(i, base[i])
-                    pos.append((i-1, c, i-1))
+                    pos.append((i, c, i-1))
+
+        # print(pos)
 
         s, e, c = pick(pos)
+        # s, e, c = pos[0]
+
+        # print("CHOSEN", s, e, c)
+
         base = super_swap(base, s, e)
 
 
@@ -275,8 +283,8 @@ print("=============================================")
 
 print(res)
 
-for i in range(1, len(res)):
-    print(res[i-1]+res[i])
+# for i in range(1, len(res)):
+    # print(res[i-1]+res[i])
 
 
 
