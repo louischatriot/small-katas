@@ -226,16 +226,26 @@ def get_next(base):
 
 
     while True:
-        # print("======================================")
+        # print("=========================================================================")
         # print(base)
         # print("CONFLICT L", c, base[c])
         # print("CONFLICT R", c+1, base[c+1])
 
         if c+1 != 0 and (base[0], base[c+1]) in pairs:
+            # print("MATCH L")
+
+
+            # print(base)
+
             res = super_swap(base, 0, c)
+
+
+            # print(res)
+
             return res
 
         if c != N-1 and (base[c], base[N-1]) in pairs:
+            # print("MATCH R")
             res = super_swap(base, c+1, N-1)
             return res
 
@@ -247,6 +257,11 @@ def get_next(base):
             if (base[c], base[i]) in pairs:
                 # print("BOOM", i, base[i])
                 if (base[c+1], base[i+1]) in pairs:
+
+
+                    # print("RIGHT OK: ", c, i)
+
+
                     res = super_swap(base, c+1, i)
                     return res
                 else:
@@ -256,7 +271,10 @@ def get_next(base):
         for i in range(1, c):
             if (base[c+1], base[i]) in pairs:
                 if (base[c], base[i-1]) in pairs:
-                    res = super_swap(base, i-1, c)
+
+                    # print("LEFT OK: ", c, i)
+
+                    res = super_swap(base, i, c)
                     return res
                 else:
                     pos.append((i, c, i-1))
@@ -264,6 +282,7 @@ def get_next(base):
         # print(pos)
 
         s, e, c = pick(pos)
+
         # s, e, c = pos[0]
 
         # print("CHOSEN", s, e, c)
@@ -275,11 +294,18 @@ def get_next(base):
 
 
 
+start = time()
 
 res = get_next(base)
+
+print("==> DURATION:", time() - start)
+
+
+
 print("=============================================")
 print("=============================================")
 print("=============================================")
+
 
 print(res)
 
@@ -290,8 +316,11 @@ print(res)
 
 def check(l):
     N = len(l)
-    if any([(l[i-1], l[i]) not in pairs for i in range(1, N)]):
-        raise ValueError("Not summing to a square")
+
+    for i in range(1, N):
+        if (l[i-1], l[i]) not in pairs:
+            raise ValueError(f"Not summing to a square: {i}")
+
     ll = sorted(l)
     if ll[0] != 1:
         raise ValueError("Minimum should be 1")
