@@ -205,38 +205,94 @@ def super_swap(l, i, j):
 
 base = [32, 17, 19, 30, 34, 15, 21, 28, 8, 1, 24, 25, 11, 5, 4, 12, 13, 3, 6, 10, 26, 23, 2, 14, 22, 27, 9, 16, 33, 31, 18, 7, 29, 20]
 
-N = len(base)
-new = 35
+
+def get_next(base):
+    N = len(base)
+    new = N+1
+    N = len(base)
 
 
-# Assuming extremities have been checked
-# As well as clean insertion between consecutive elements
-for i in range(1, N-1):
+
+    # NEED TO REALLY CODE INSERTION
+    base.insert(10, new)
+    base = super_swap(base, 11, 24)
+
+    # Conflict
+    c = 24
+    if (base[c], base[c+1]) in pairs:
+        1/0
+
+    print(base)
+    print(c, base[c])
+    print(c+1, base[c+1])
 
 
-    if (base[i], new) in pairs:
+    while True:
+        if c+1 != 0 and (base[0], base[c+1]) in pairs:
+            res = super_swap(base, 0, c)
+            return res
 
+        if c != N-1 and (base[c], base[N-1]) in pairs:
+            res = super_swap(base, c+1, N-1)
+            return res
 
         pos = []
 
+        # Checking right of conflict
+        for i in range(c+2, N-1):
+            if (base[c], base[i]) in pairs:
+                if (base[c+1], base[i+1]) in pairs:
+                    res = super_swap(base, c+1, i)
+                    return res
+                else:
+                    pos.append((c+1, i, i))
 
-        for j in range(i+2, N):
-            if (base[j], new) not in pairs:
-                continue
+        # Checking left of conflict
+        for i in range(1, c):
+            if (base[c+1], base[i]) in pairs:
+                if (base[c], base[i-1]) in pairs:
+                    res = super_swap(base, i-1, c)
+                    return res
+                else:
+                    # print("match")
+                    # print(i-1, base[i-1])
+                    # print(i, base[i])
+                    pos.append((i-1, c, i-1))
 
-            # This case should not exist given the above
-            if j == N-1:
-                res.append(base[0:i+1] + [new] + list(reversed(base[i+1:])))
-                continue
-
-            if (base[i+1], base[j+1]) in pairs:
-                res.append(base[0:i+1] + [new] + list(reversed(base[i+1:j+1])) + base[j+1:])
-                continue
+        s, e, c = pick(pos)
+        base = super_swap(base, s, e)
 
 
 
 
 
+
+
+res = get_next(base)
+print("=============================================")
+print("=============================================")
+print("=============================================")
+
+print(res)
+
+for i in range(1, len(res)):
+    print(res[i-1]+res[i])
+
+
+
+def check(l):
+    N = len(l)
+    if any([(l[i-1], l[i]) not in pairs for i in range(1, N)]):
+        raise ValueError("Not summing to a square")
+    ll = sorted(l)
+    if ll[0] != 1:
+        raise ValueError("Minimum should be 1")
+    if any([ll[i] - ll[i-1] != 1 for i in range(1, N)]):
+        raise ValueError("Should contain all numbers up to length")
+
+    return True
+
+check(res)
 
 1/0
 
