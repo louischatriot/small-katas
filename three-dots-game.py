@@ -29,15 +29,19 @@ def bfs(map):
     start = (start['R'][0], start['R'][1], start['G'][0], start['G'][1], start['Y'][0], start['Y'][1])
     end = (end['r'][0], end['r'][1], end['g'][0], end['g'][1], end['y'][0], end['y'][1])
 
-    paths = dict(start == '')
-    to_do = [start]
+    paths = dict()
+    to_do = [(start, '')]
 
     while True:
-        pos = to_do.pop(0)
+        pos, path = to_do.pop(0)
 
-        if pos in paths and len(paths) > 1:
+        if pos in paths:
             continue
 
+        paths[pos] = path
+
+        if pos == end:
+            return path
 
         for d, delta in dirs.items():
             new = ()
@@ -50,8 +54,8 @@ def bfs(map):
 
                 new = new + (x, y)
 
-            if new not in paths:
-                pass
+            to_do.append((new, path + d))
+
 
 
 
@@ -63,7 +67,9 @@ map1 = "+------------+\n" + "|R    *******|\n" + "|G    *******|\n" + "|Y    ***
 print(map1)
 
 
-bfs(map1)
+res = bfs(map1)
 
+
+print(res)
 
 
