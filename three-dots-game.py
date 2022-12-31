@@ -1,4 +1,5 @@
 from time import time
+import heapq
 
 dirs = {'↑': (-1, 0),
         '↓': (1, 0),
@@ -9,8 +10,12 @@ dirs = {'↑': (-1, 0),
 deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if abs(dx ^ dy) == 1]
 
 
+# Max distance between three sets of two points
+def dist(a, b):
+    return max(abs(a[0] - b[0]) + abs(a[1] - b[1]), abs(a[2] - b[2]) + abs(a[3] - b[3]), abs(a[4] - b[4]) + abs(a[5] - b[5]))
 
-def bfs(map):
+
+def bfs(map, cut = 999):
     walls = set()
     start = dict()
     end = dict()
@@ -30,10 +35,13 @@ def bfs(map):
     end = (end['r'][0], end['r'][1], end['g'][0], end['g'][1], end['y'][0], end['y'][1])
 
     paths = dict()
-    to_do = [(start, '')]
+    to_do = []
 
-    while True:
-        pos, path = to_do.pop(0)
+    heapq.heappush(to_do, (0, start, ''))
+
+
+    while len(to_do) > 0:
+        priority, pos, path = heapq.heappop(to_do)
 
         if pos in paths:
             continue
@@ -54,22 +62,66 @@ def bfs(map):
 
                 new = new + (x, y)
 
-            to_do.append((new, path + d))
+            if abs(new[0] - new[2]) + abs(new[1] - new[3]) <= cut and abs(new[4] - new[2]) + abs(new[5] - new[3]) <= cut and abs(new[0] - new[4]) + abs(new[1] - new[5]) <= cut:
+                heapq.heappush(to_do, (dist(new, end), new, path + d))
+                # to_do.append((new, path + d))
+
+    return None
+
+
+
+def three_dots(game_map):
+    try:
+        return bfs(game_map, 39999)
+    except:
+        return None
 
 
 
 
 
+# map1 = "+------------+\n" + "|R    *******|\n" + "|G    *******|\n" + "|Y    *******|\n" + "|            |\n" + "|           r|\n" + "|******     g|\n" + "|******     y|\n" + "+------------+"
+
+# print(map1)
+
+# res = bfs(map1)
+
+# print(res)
 
 
-map1 = "+------------+\n" + "|R    *******|\n" + "|G    *******|\n" + "|Y    *******|\n" + "|            |\n" + "|           r|\n" + "|******     g|\n" + "|******     y|\n" + "+------------+"
 
-print(map1)
+map2_better = (
+  "+------------+\n"
++ "|R ** ***|\n"
++ "|G ** ***|\n"
++ "|Y       |\n"
++ "|        |\n"
++ "|        |\n"
++ "|        |\n"
++ "|       g|\n"
++ "|** *** r|\n"
++ "|** *** y|\n"
++ "+------------+")
 
 
-res = bfs(map1)
+# print(map2_better)
 
+
+
+map2 =  "+------------+\n" + "|R     ** ***|\n" + "|G     ** ***|\n" + "|Y           |\n" + "|            |\n" + "|            |\n" + "|            |\n" + "|           g|\n" + "|** ***     r|\n" + "|** ***     y|\n" + "+------------+"
+
+print(map2)
+
+start = time()
+
+res = three_dots(map2)
 
 print(res)
+print("==> Duration:", time() - start)
+
+
+
+
+
 
 
