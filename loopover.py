@@ -30,19 +30,44 @@ def move_column(board, res, y, _from, _to):
         board[0][y] = swp
 
 
+def loopover22(mixed_up_board, solved_board):
+    res = []
 
-# print('\n'.join([''.join(l) for l in mixed_up_board]))
+    l = solved_board[0][0]
+    xt, yt = find(mixed_up_board, l)
+    move_line(mixed_up_board, res, xt, yt, 0)
+    move_column(mixed_up_board, res, 0, xt, 0)
+
+    l = solved_board[0][1]
+    xt, yt = find(mixed_up_board, l)
+    move_line(mixed_up_board, res, xt, yt, 1)
+    move_column(mixed_up_board, res, 1, xt, 0)
+
+    if mixed_up_board[1][0] != solved_board[1][0]:
+        move_line(mixed_up_board, res, 1, 0, 1)
+
+    return res
 
 
 def loopover(mixed_up_board, solved_board):
     res = []
 
+
+
+
+
     N = len(mixed_up_board)
     M = len(mixed_up_board[0])
+
+    # Ugly but oh well
+    if N == 2 and M == 2:
+        return loopover22(mixed_up_board, solved_board)
 
 
     # print('\n'.join([''.join(l) for l in mixed_up_board]))
     # print("===============================")
+
+
 
 
     # Manually do first line and first column
@@ -53,6 +78,9 @@ def loopover(mixed_up_board, solved_board):
 
     l = solved_board[0][1]
     xt, yt = find(mixed_up_board, l)
+    if xt == 0:
+        move_column(mixed_up_board, res, yt, 0, 1)
+        xt += 1
     move_line(mixed_up_board, res, xt, yt, 1)
     move_column(mixed_up_board, res, 1, xt, 0)
 
@@ -129,6 +157,10 @@ def loopover(mixed_up_board, solved_board):
         l = solved_board[N-1][y]
         xt, yt = find(mixed_up_board, l)
 
+        if (xt, yt) == (N-1, M-1):
+            move_line(mixed_up_board, res, N-1, 1, 0)
+            continue
+
         if xt == N-1:
             move_line(mixed_up_board, res, N-1, yt, M-1)
             move_column(mixed_up_board, res, M-1, N-1, N-2)
@@ -145,6 +177,10 @@ def loopover(mixed_up_board, solved_board):
     for x in range(0, N-2):
         l = solved_board[x][M-1]
         xt, yt = find(mixed_up_board, l)
+
+        if (xt, yt) == (N-1, M-1):
+            move_column(mixed_up_board, res, M-1, 1, 0)
+            continue
 
         if yt == M-1:
             move_line(mixed_up_board,res, N-1, 0, 1)
@@ -176,6 +212,82 @@ def loopover(mixed_up_board, solved_board):
         move_line(mixed_up_board, res, N-1, 1, 0)
         return res
 
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-2], solved_board[-2][-1], solved_board[-1][-1]):
+        move_column(mixed_up_board, res, M-1, 0, 1)
+        move_line(mixed_up_board, res, N-1, 0, 1)
+        move_column(mixed_up_board, res, M-1, 1, 0)
+        move_line(mixed_up_board, res, N-1, 1, 0)
+
+    # Swap two
+    if (mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-1], solved_board[-1][-2]):
+        if N % 2 == 0:
+            for _ in range(0, N // 2):
+                move_column(mixed_up_board, res, M-1, 0, 1)
+                move_line(mixed_up_board, res, N-1, 0, 1)
+                move_column(mixed_up_board, res, M-1, 0, 1)
+                move_line(mixed_up_board, res, N-1, 1, 0)
+
+            move_column(mixed_up_board, res, M-1, 0, 1)
+            return res
+
+        elif M % 2 == 0:
+            for _ in range(0, M // 2):
+                move_line(mixed_up_board, res, N-1, 0, 1)
+                move_column(mixed_up_board, res, M-1, 0, 1)
+                move_line(mixed_up_board, res, N-1, 0, 1)
+                move_column(mixed_up_board, res, M-1, 1, 0)
+
+            move_line(mixed_up_board, res, N-1, 0, 1)
+
+    # Same as above but after the "magic swap"
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-2], solved_board[-1][-1], solved_board[-2][-1]):
+        move_line(mixed_up_board, res, N-1, 0, 1)
+        move_column(mixed_up_board, res, M-1, 0, 1)
+        move_line(mixed_up_board, res, N-1, 1, 0)
+        move_column(mixed_up_board, res, M-1, 1, 0)
+        return res
+
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-1], solved_board[-2][-1], solved_board[-1][-2]):
+        move_column(mixed_up_board, res, M-1, 0, 1)
+        move_line(mixed_up_board, res, N-1, 0, 1)
+        move_column(mixed_up_board, res, M-1, 1, 0)
+        move_line(mixed_up_board, res, N-1, 1, 0)
+        return res
+
+
+
+
+            # print('\n'.join([''.join(l) for l in mixed_up_board]))
+            # print("===============================")
+
+
+            # move_column(mixed_up_board, res, M-1, 0, 1)
+            # move_line(mixed_up_board, res, N-1, 0, 1)
+            # move_column(mixed_up_board, res, M-1, 1, 0)
+            # move_line(mixed_up_board, res, N-1, 1, 0)
+
+            # print('\n'.join([''.join(l) for l in mixed_up_board]))
+            # print("===============================")
+
+            # move_column(mixed_up_board, res, M-1, 0, 1)
+            # move_line(mixed_up_board, res, N-1, 0, 1)
+            # move_column(mixed_up_board, res, M-1, 1, 0)
+            # move_line(mixed_up_board, res, N-1, 1, 0)
+
+            # print('\n'.join([''.join(l) for l in mixed_up_board]))
+            # print("===============================")
+
+            # move_column(mixed_up_board, res, M-1, 0, 1)
+            # move_line(mixed_up_board, res, N-1, 0, 1)
+            # move_column(mixed_up_board, res, M-1, 1, 0)
+            # move_line(mixed_up_board, res, N-1, 1, 0)
+
+
+
+
+
+
+
 
     return None
 
@@ -184,15 +296,37 @@ def to_board(str):
     return [list(row) for row in str.split('\n')]
 
 
-mixed_up_board = to_board('CWMFJ\nORDBA\nNKGLY\nPHSVE\nXTQUI')
-solved_board = to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST\nUVWXY')
+
+
+tests = [
+    (to_board('CWMFJ\nORDBA\nNKGLY\nPHSVE\nXTQUI'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST\nUVWXY')),
+    (to_board('42\n31'), to_board('12\n34')),
+    (to_board('ACDBE\nFGHIJ\nKLMNO\nPQRST\nUVWXY'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST\nUVWXY')),
+    (to_board('ACDBE\nFGHIJ\nKLMNO\nPQRST'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST')),
+    (to_board('esihUr\nbL1AoH\nCFvYlJ\ndGnTfu\ntSkEj0\nIWZwzQ\ncqKpDa\ngOmxXM\nBPyRVN'), to_board('ABCDEF\nGHIJKL\nMNOPQR\nSTUVWX\nYZabcd\nefghij\nklmnop\nqrstuv\nwxyz01'))
+]
+
+
+
+
+
+
+
 
 
 start = time()
 
-res = loopover(mixed_up_board, solved_board)
 
-print(res)
+
+
+
+for mixed_up_board, solved_board in tests:
+    res = loopover(mixed_up_board, solved_board)
+    print(len(res))
+
+
+
+
 print("==> Duration:", time() - start)
 
 
