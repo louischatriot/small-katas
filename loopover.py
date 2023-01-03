@@ -60,29 +60,35 @@ def loopover(mixed_up_board, solved_board):
     print('\n'.join([''.join(l) for l in mixed_up_board]))
     print("===============================")
 
+    move_column(mixed_up_board, res, 3, 0, 1)
+    move_line(mixed_up_board, res, 1, 3, 0)
+
+    print('\n'.join([''.join(l) for l in mixed_up_board]))
+    print("===============================")
+
 
     # Forbidden box
     bx, by = 0, 1
 
 
     while True:
-        if bx < N - 2:
+        if bx >= N-2 and by >= M-2:
+            break
+
+        if bx < N-2:
             bx += 1
-
-
 
             for y in range(0, by+1):
                 l = solved_board[bx][y]
                 xt, yt = find(mixed_up_board, l)
 
                 if xt == bx:
-                    pass
-                    # TO BE TESTED!
-                    # move_line(mixed_up_board, res, bx, yt, by + 1)
-                    # move_column(mixed_up_board, res, by+1, xt, xt + 1)
-                    # move_line(mixed_up_board, res, bx, by + 1, yt)
-                    # move_column(mixed_up_board, res, by+1, xt + 1, xt)
-                    # move_line(mixed_up_board, res, bx, by, by - 1)
+                    move_line(mixed_up_board, res, bx, yt, by+1)
+                    move_column(mixed_up_board, res, by+1, bx, bx+1)
+                    move_line(mixed_up_board, res, bx, by+1, yt)
+                    move_column(mixed_up_board, res, by+1, bx+1, bx)
+                    move_line(mixed_up_board, res, bx, by, by-1)
+
                 elif xt < bx:
                     # yt must be strictly higher than by
                     move_column(mixed_up_board, res, yt, xt, bx+1)
@@ -90,11 +96,44 @@ def loopover(mixed_up_board, solved_board):
                     move_column(mixed_up_board, res, by+1, bx+1, bx)
                     move_line(mixed_up_board, res, bx, by+1, by)
 
-
                 elif xt > bx:
-                    move_line(mixed_up_board, res, xt, yt, by + 1)
-                    move_column(mixed_up_board, res, by + 1, xt, bx)
-                    move_line(mixed_up_board, res, bx, by, by - 1)
+                    move_line(mixed_up_board, res, xt, yt, by+1)
+                    move_column(mixed_up_board, res, by+1, xt, bx)
+                    move_line(mixed_up_board, res, bx, by, by-1)
+
+                else:
+                    raise ValueError("WTF")
+
+            print('\n'.join([''.join(l) for l in mixed_up_board]))
+            print("===============================")
+
+        if by < M-2:
+            by += 1
+
+            for x in range(0, bx+1):
+                l = solved_board[x][by]
+                xt, yt = find(mixed_up_board, l)
+
+                if yt == by:
+                    move_column(mixed_up_board, res, by, xt, bx+1)
+                    move_line(mixed_up_board, res, bx+1, by, by+1)
+                    move_column(mixed_up_board, res, by, bx+1, xt)
+                    move_line(mixed_up_board, res, bx+1, by+1, by)
+                    move_column(mixed_up_board, res, by, bx+1, bx)
+
+                elif yt < by:
+                    move_line(mixed_up_board, res, xt, yt, by+1)
+                    move_column(mixed_up_board, res, by+1, xt, bx+1)
+                    move_line(mixed_up_board, res, bx+1, by+1, by)
+                    move_column(mixed_up_board, res, by, bx+1, bx)
+
+                elif yt > by:
+                    move_column(mixed_up_board, res, yt, xt, bx+1)
+                    move_line(mixed_up_board, res, bx+1, yt, by)
+                    move_column(mixed_up_board, res, by, bx, bx-1)
+
+                else:
+                    raise ValueError("WTF")
 
             print('\n'.join([''.join(l) for l in mixed_up_board]))
             print("===============================")
@@ -104,7 +143,8 @@ def loopover(mixed_up_board, solved_board):
 
 
 
-        1/0
+
+        # 1/0
 
 
 
