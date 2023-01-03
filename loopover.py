@@ -41,8 +41,8 @@ def loopover(mixed_up_board, solved_board):
     M = len(mixed_up_board[0])
 
 
-    print('\n'.join([''.join(l) for l in mixed_up_board]))
-    print("===============================")
+    # print('\n'.join([''.join(l) for l in mixed_up_board]))
+    # print("===============================")
 
 
     # Manually do first line and first column
@@ -55,16 +55,6 @@ def loopover(mixed_up_board, solved_board):
     xt, yt = find(mixed_up_board, l)
     move_line(mixed_up_board, res, xt, yt, 1)
     move_column(mixed_up_board, res, 1, xt, 0)
-
-
-    print('\n'.join([''.join(l) for l in mixed_up_board]))
-    print("===============================")
-
-    move_column(mixed_up_board, res, 3, 0, 1)
-    move_line(mixed_up_board, res, 1, 3, 0)
-
-    print('\n'.join([''.join(l) for l in mixed_up_board]))
-    print("===============================")
 
 
     # Forbidden box
@@ -104,8 +94,6 @@ def loopover(mixed_up_board, solved_board):
                 else:
                     raise ValueError("WTF")
 
-            print('\n'.join([''.join(l) for l in mixed_up_board]))
-            print("===============================")
 
         if by < M-2:
             by += 1
@@ -135,12 +123,9 @@ def loopover(mixed_up_board, solved_board):
                 else:
                     raise ValueError("WTF")
 
-            print('\n'.join([''.join(l) for l in mixed_up_board]))
-            print("===============================")
 
-
-    # Last row
-    for y in range(0, M-1):
+    # Last row (everything except last 2 elements)
+    for y in range(0, M-2):
         l = solved_board[N-1][y]
         xt, yt = find(mixed_up_board, l)
 
@@ -153,28 +138,44 @@ def loopover(mixed_up_board, solved_board):
         move_column(mixed_up_board, res, M-1, xt, N-1)
         move_line(mixed_up_board, res, N-1, M-1, M-2)
 
-    print('\n'.join([''.join(l) for l in mixed_up_board]))
-    print("===============================")
+    move_line(mixed_up_board, res, N-1, M-1, M-2)
 
 
+    # Last column (everything except last 2 elements)
+    for x in range(0, N-2):
+        l = solved_board[x][M-1]
+        xt, yt = find(mixed_up_board, l)
+
+        if yt == M-1:
+            move_line(mixed_up_board,res, N-1, 0, 1)
+            move_column(mixed_up_board, res, M-1, xt, N-1)
+            move_line(mixed_up_board,res, N-1, 1, 0)
+            move_column(mixed_up_board, res, M-1, N-1, xt)
+
+        move_line(mixed_up_board, res, N-1, 0, 1)
+        move_column(mixed_up_board, res, M-1, 1, 0)
+        move_line(mixed_up_board, res, N-1, 1, 0)
+
+    move_column(mixed_up_board, res, M-1, 1, 0)
 
 
-    # print(mixed_up_board)
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-2][-1], solved_board[-1][-2], solved_board[-1][-1]):
+        return res
 
-    # print(find(mixed_up_board, "A"))
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-2], solved_board[-1][-1], solved_board[-2][-1]):
+        move_line(mixed_up_board, res, N-1, 0, 1)
+        move_column(mixed_up_board, res, M-1, 0, 1)
+        move_line(mixed_up_board, res, N-1, 1, 0)
+        move_column(mixed_up_board, res, M-1, 1, 0)
+        return res
 
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-1], solved_board[-2][-1], solved_board[-1][-2]):
+        move_column(mixed_up_board, res, M-1, 0, 1)
+        move_line(mixed_up_board, res, N-1, 0, 1)
+        move_column(mixed_up_board, res, M-1, 1, 0)
+        move_line(mixed_up_board, res, N-1, 1, 0)
+        return res
 
-    # move_line(mixed_up_board, res, 1)
-
-    # print('\n'.join([''.join(l) for l in mixed_up_board]))
-    # print(res)
-
-    # move_column(mixed_up_board, res, 3)
-
-    # print('\n'.join([''.join(l) for l in mixed_up_board]))
-    # print(res)
-
-    print(res)
 
     return None
 
