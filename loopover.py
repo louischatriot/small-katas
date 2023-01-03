@@ -70,7 +70,7 @@ def loopover(mixed_up_board, solved_board):
     # Forbidden box
     bx, by = 0, 1
 
-
+    # Inner square
     while True:
         if bx >= N-2 and by >= M-2:
             break
@@ -139,12 +139,22 @@ def loopover(mixed_up_board, solved_board):
             print("===============================")
 
 
+    # Last row
+    for y in range(0, M-1):
+        l = solved_board[N-1][y]
+        xt, yt = find(mixed_up_board, l)
 
+        if xt == N-1:
+            move_line(mixed_up_board, res, N-1, yt, M-1)
+            move_column(mixed_up_board, res, M-1, N-1, N-2)
+            move_line(mixed_up_board, res, N-1, M-1, yt)
+            xt -= 1
 
+        move_column(mixed_up_board, res, M-1, xt, N-1)
+        move_line(mixed_up_board, res, N-1, M-1, M-2)
 
-
-
-        # 1/0
+    print('\n'.join([''.join(l) for l in mixed_up_board]))
+    print("===============================")
 
 
 
