@@ -218,7 +218,7 @@ def loopover(mixed_up_board, solved_board):
         move_column(mixed_up_board, res, M-1, 1, 0)
         move_line(mixed_up_board, res, N-1, 1, 0)
 
-    # Swap two
+    # Swap two, in line
     if (mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-1], solved_board[-1][-2]):
         if N % 2 == 0:
             for _ in range(0, N // 2):
@@ -239,6 +239,32 @@ def loopover(mixed_up_board, solved_board):
 
             move_line(mixed_up_board, res, N-1, 0, 1)
 
+    # Swap two, in column
+    if (mixed_up_board[-2][-1], mixed_up_board[-1][-1]) == (solved_board[-1][-1], solved_board[-2][-1]):
+        if M % 2 == 0:
+            for _ in range(0, M // 2):
+                move_line(mixed_up_board, res, N-1, 0, 1)
+                move_column(mixed_up_board, res, M-1, 0, 1)
+                move_line(mixed_up_board, res, N-1, 0, 1)
+                move_column(mixed_up_board, res, M-1, 1, 0)
+
+            move_line(mixed_up_board, res, N-1, 0, 1)
+            return res
+
+        elif N % 2 == 0:
+            for _ in range(0, N // 2):
+                move_column(mixed_up_board, res, M-1, 0, 1)
+                move_line(mixed_up_board, res, N-1, 0, 1)
+                move_column(mixed_up_board, res, M-1, 0, 1)
+                move_line(mixed_up_board, res, N-1, 1, 0)
+
+            move_column(mixed_up_board, res, M-1, 0, 1)
+
+
+
+
+
+
     # Same as above but after the "magic swap"
     if (mixed_up_board[-2][-1], mixed_up_board[-1][-2], mixed_up_board[-1][-1]) == (solved_board[-1][-2], solved_board[-1][-1], solved_board[-2][-1]):
         move_line(mixed_up_board, res, N-1, 0, 1)
@@ -257,8 +283,8 @@ def loopover(mixed_up_board, solved_board):
 
 
 
-            # print('\n'.join([''.join(l) for l in mixed_up_board]))
-            # print("===============================")
+    print('\n'.join([''.join(l) for l in mixed_up_board]))
+    print("===============================")
 
 
             # move_column(mixed_up_board, res, M-1, 0, 1)
@@ -281,8 +307,6 @@ def loopover(mixed_up_board, solved_board):
             # move_line(mixed_up_board, res, N-1, 0, 1)
             # move_column(mixed_up_board, res, M-1, 1, 0)
             # move_line(mixed_up_board, res, N-1, 1, 0)
-
-
 
 
 
@@ -303,7 +327,8 @@ tests = [
     (to_board('42\n31'), to_board('12\n34')),
     (to_board('ACDBE\nFGHIJ\nKLMNO\nPQRST\nUVWXY'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST\nUVWXY')),
     (to_board('ACDBE\nFGHIJ\nKLMNO\nPQRST'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST')),
-    (to_board('esihUr\nbL1AoH\nCFvYlJ\ndGnTfu\ntSkEj0\nIWZwzQ\ncqKpDa\ngOmxXM\nBPyRVN'), to_board('ABCDEF\nGHIJKL\nMNOPQR\nSTUVWX\nYZabcd\nefghij\nklmnop\nqrstuv\nwxyz01'))
+    (to_board('esihUr\nbL1AoH\nCFvYlJ\ndGnTfu\ntSkEj0\nIWZwzQ\ncqKpDa\ngOmxXM\nBPyRVN'), to_board('ABCDEF\nGHIJKL\nMNOPQR\nSTUVWX\nYZabcd\nefghij\nklmnop\nqrstuv\nwxyz01')),
+    (to_board('CELGHI\nADKFJB'), to_board('ABCDEF\nGHIJKL'))
 ]
 
 
