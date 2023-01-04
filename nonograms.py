@@ -83,6 +83,7 @@ start = time()
 n = Nonogram(clues)
 
 
+res = possibilities((3,4,5), 20)
 
 print("==> Duration:", time() - start)
 
