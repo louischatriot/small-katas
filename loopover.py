@@ -52,10 +52,6 @@ def loopover22(mixed_up_board, solved_board):
 def loopover(mixed_up_board, solved_board):
     res = []
 
-
-
-
-
     N = len(mixed_up_board)
     M = len(mixed_up_board[0])
 
@@ -68,88 +64,96 @@ def loopover(mixed_up_board, solved_board):
     # print("===============================")
 
 
+    if M == 2:
+        for x in range(0, N-1):
+            l = solved_board[x][0]
+            xt, yt = find(mixed_up_board, l)
+
+            if yt == 0:
+                move_line(mixed_up_board, res, xt, 0, 1)
+
+            move_column(mixed_up_board, res, 1, xt, x)
+            move_line(mixed_up_board, res, x, 1, 0)
+
+    else:
+        # IF MORE THAN TWO COLUMNS
+        # Manually do first line and first column
+        l = solved_board[0][0]
+        xt, yt = find(mixed_up_board, l)
+        move_line(mixed_up_board, res, xt, yt, 0)
+        move_column(mixed_up_board, res, 0, xt, 0)
+
+        l = solved_board[0][1]
+        xt, yt = find(mixed_up_board, l)
+        if xt == 0:
+            move_column(mixed_up_board, res, yt, 0, 1)
+            xt += 1
+        move_line(mixed_up_board, res, xt, yt, 1)
+        move_column(mixed_up_board, res, 1, xt, 0)
+
+        bx, by = 0, 1
+        # Inner square
+        while True:
+            if bx >= N-2 and by >= M-2:
+                break
+
+            if bx < N-2:
+                bx += 1
+
+                for y in range(0, by+1):
+                    l = solved_board[bx][y]
+                    xt, yt = find(mixed_up_board, l)
+
+                    if xt == bx:
+                        move_line(mixed_up_board, res, bx, yt, by+1)
+                        move_column(mixed_up_board, res, by+1, bx, bx+1)
+                        move_line(mixed_up_board, res, bx, by+1, yt)
+                        move_column(mixed_up_board, res, by+1, bx+1, bx)
+                        move_line(mixed_up_board, res, bx, by, by-1)
+
+                    elif xt < bx:
+                        # yt must be strictly higher than by
+                        move_column(mixed_up_board, res, yt, xt, bx+1)
+                        move_line(mixed_up_board, res, bx+1, yt, by+1)
+                        move_column(mixed_up_board, res, by+1, bx+1, bx)
+                        move_line(mixed_up_board, res, bx, by+1, by)
+
+                    elif xt > bx:
+                        move_line(mixed_up_board, res, xt, yt, by+1)
+                        move_column(mixed_up_board, res, by+1, xt, bx)
+                        move_line(mixed_up_board, res, bx, by, by-1)
+
+                    else:
+                        raise ValueError("WTF")
 
 
-    # Manually do first line and first column
-    l = solved_board[0][0]
-    xt, yt = find(mixed_up_board, l)
-    move_line(mixed_up_board, res, xt, yt, 0)
-    move_column(mixed_up_board, res, 0, xt, 0)
+            if by < M-2:
+                by += 1
 
-    l = solved_board[0][1]
-    xt, yt = find(mixed_up_board, l)
-    if xt == 0:
-        move_column(mixed_up_board, res, yt, 0, 1)
-        xt += 1
-    move_line(mixed_up_board, res, xt, yt, 1)
-    move_column(mixed_up_board, res, 1, xt, 0)
+                for x in range(0, bx+1):
+                    l = solved_board[x][by]
+                    xt, yt = find(mixed_up_board, l)
 
+                    if yt == by:
+                        move_column(mixed_up_board, res, by, xt, bx+1)
+                        move_line(mixed_up_board, res, bx+1, by, by+1)
+                        move_column(mixed_up_board, res, by, bx+1, xt)
+                        move_line(mixed_up_board, res, bx+1, by+1, by)
+                        move_column(mixed_up_board, res, by, bx+1, bx)
 
-    # Forbidden box
-    bx, by = 0, 1
+                    elif yt < by:
+                        move_line(mixed_up_board, res, xt, yt, by+1)
+                        move_column(mixed_up_board, res, by+1, xt, bx+1)
+                        move_line(mixed_up_board, res, bx+1, by+1, by)
+                        move_column(mixed_up_board, res, by, bx+1, bx)
 
-    # Inner square
-    while True:
-        if bx >= N-2 and by >= M-2:
-            break
+                    elif yt > by:
+                        move_column(mixed_up_board, res, yt, xt, bx+1)
+                        move_line(mixed_up_board, res, bx+1, yt, by)
+                        move_column(mixed_up_board, res, by, bx, bx-1)
 
-        if bx < N-2:
-            bx += 1
-
-            for y in range(0, by+1):
-                l = solved_board[bx][y]
-                xt, yt = find(mixed_up_board, l)
-
-                if xt == bx:
-                    move_line(mixed_up_board, res, bx, yt, by+1)
-                    move_column(mixed_up_board, res, by+1, bx, bx+1)
-                    move_line(mixed_up_board, res, bx, by+1, yt)
-                    move_column(mixed_up_board, res, by+1, bx+1, bx)
-                    move_line(mixed_up_board, res, bx, by, by-1)
-
-                elif xt < bx:
-                    # yt must be strictly higher than by
-                    move_column(mixed_up_board, res, yt, xt, bx+1)
-                    move_line(mixed_up_board, res, bx+1, yt, by+1)
-                    move_column(mixed_up_board, res, by+1, bx+1, bx)
-                    move_line(mixed_up_board, res, bx, by+1, by)
-
-                elif xt > bx:
-                    move_line(mixed_up_board, res, xt, yt, by+1)
-                    move_column(mixed_up_board, res, by+1, xt, bx)
-                    move_line(mixed_up_board, res, bx, by, by-1)
-
-                else:
-                    raise ValueError("WTF")
-
-
-        if by < M-2:
-            by += 1
-
-            for x in range(0, bx+1):
-                l = solved_board[x][by]
-                xt, yt = find(mixed_up_board, l)
-
-                if yt == by:
-                    move_column(mixed_up_board, res, by, xt, bx+1)
-                    move_line(mixed_up_board, res, bx+1, by, by+1)
-                    move_column(mixed_up_board, res, by, bx+1, xt)
-                    move_line(mixed_up_board, res, bx+1, by+1, by)
-                    move_column(mixed_up_board, res, by, bx+1, bx)
-
-                elif yt < by:
-                    move_line(mixed_up_board, res, xt, yt, by+1)
-                    move_column(mixed_up_board, res, by+1, xt, bx+1)
-                    move_line(mixed_up_board, res, bx+1, by+1, by)
-                    move_column(mixed_up_board, res, by, bx+1, bx)
-
-                elif yt > by:
-                    move_column(mixed_up_board, res, yt, xt, bx+1)
-                    move_line(mixed_up_board, res, bx+1, yt, by)
-                    move_column(mixed_up_board, res, by, bx, bx-1)
-
-                else:
-                    raise ValueError("WTF")
+                    else:
+                        raise ValueError("WTF")
 
 
     # Last row (everything except last 2 elements)
@@ -328,7 +332,9 @@ tests = [
     (to_board('ACDBE\nFGHIJ\nKLMNO\nPQRST\nUVWXY'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST\nUVWXY')),
     (to_board('ACDBE\nFGHIJ\nKLMNO\nPQRST'), to_board('ABCDE\nFGHIJ\nKLMNO\nPQRST')),
     (to_board('esihUr\nbL1AoH\nCFvYlJ\ndGnTfu\ntSkEj0\nIWZwzQ\ncqKpDa\ngOmxXM\nBPyRVN'), to_board('ABCDEF\nGHIJKL\nMNOPQR\nSTUVWX\nYZabcd\nefghij\nklmnop\nqrstuv\nwxyz01')),
-    (to_board('CELGHI\nADKFJB'), to_board('ABCDEF\nGHIJKL'))
+    (to_board('CELGHI\nADKFJB'), to_board('ABCDEF\nGHIJKL')),
+    (to_board('FC\nHB\nEA\nGD'), to_board('AB\nCD\nEF\nGH'))
+
 ]
 
 
