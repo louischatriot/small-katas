@@ -20,14 +20,14 @@ def possibilities(clues, N):
     for r in range(c+1, R):
         heads = possibilities((c,), r)
 
-        print(heads)
-        print("============================")
+        # print(heads)
+        # print("============================")
 
         for h in heads:
-            print("YO")
-            print(N-r-1)
+            # print("YO")
+            # print(N-r-1)
             for t in possibilities(clues[1:], N - r - 1):
-                print("EEE")
+                # print("EEE")
                 res.append(h + [0] + t)
 
     return res
@@ -39,7 +39,21 @@ class Nonogram:
         self.rowclues = clues[1]
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
+        self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
 
+
+    def deduce_initial(self):
+        N, M = self.N, self.M
+        changed = set()
+
+        for x, clue in enumerate(self.rowclues):
+            # Cannot slide much
+            movable = M - sum(clue) - (len(clue) - 1)
+            for i, c in enumerate(clue):
+                if c > movable:
+                    before = sum(clue[0:i]) + len(clue[0:i])
+                    for dy in range(0, c - movable):
+                        self.grid[x][before + movable + dy] = 1
 
 
     def solve(self):
@@ -57,10 +71,10 @@ class Nonogram:
 
 
 
-res = possibilities((3,4,5), 20)
+# res = possibilities((3,4,5), 20)
 
-for r in res:
-    print(r)
+# for r in res:
+    # print(r)
 
 
 
@@ -82,8 +96,19 @@ start = time()
 
 n = Nonogram(clues)
 
+for l in n.grid:
+    print(l)
+print("============================")
 
-res = possibilities((3,4,5), 20)
+n.deduce_initial()
+
+for l in n.grid:
+    print(l)
+print("============================")
+
+
+
+# res = possibilities((3,4,5,6,7), 41)
 
 print("==> Duration:", time() - start)
 
