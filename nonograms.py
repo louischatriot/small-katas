@@ -146,6 +146,20 @@ class Nonogram:
                 # TODO: handle left case
 
 
+        print(changed)
+        self.print()
+
+
+        # Check if row is already done
+        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+            for x in the_rows:
+                clue = clues[x]
+
+                if sum([1 if self.get(x, y, transpose) == 1 else 0 for y in range(0, M)]) == sum(clue):
+                    for y in range(0, M):
+                        if self.get(x, y, transpose) == '?':
+                            self.set(x, y, 0, changed, transpose)
+
 
 
 
