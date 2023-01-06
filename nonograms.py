@@ -62,29 +62,29 @@ class Nonogram:
         changed = set()
 
         # Cannot slide much
-        # for x, clue in enumerate(self.rowclues):
-            # movable = M - sum(clue) - (len(clue) - 1)
+        for x, clue in enumerate(self.rowclues):
+            movable = M - sum(clue) - (len(clue) - 1)
 
-            # if movable == 0:
-                # y = 0
-                # for _ in range(0, clue[0]):
-                    # self.grid[x][y] = 1
-                    # y += 1
+            if movable == 0:
+                y = 0
+                for _ in range(0, clue[0]):
+                    self.grid[x][y] = 1
+                    y += 1
 
-                # for c in clue[1:]:
-                    # self.grid[x][y] = 0
-                    # y += 1
+                for c in clue[1:]:
+                    self.grid[x][y] = 0
+                    y += 1
 
-                    # for _ in range(0, c):
-                        # self.grid[x][y] = 1
-                        # y += 1
+                    for _ in range(0, c):
+                        self.grid[x][y] = 1
+                        y += 1
 
-            # else:
-                # for i, c in enumerate(clue):
-                    # if c > movable:
-                        # before = sum(clue[0:i]) + len(clue[0:i])
-                        # for dy in range(0, c - movable):
-                            # self.grid[x][before + movable + dy] = 1
+            else:
+                for i, c in enumerate(clue):
+                    if c > movable:
+                        before = sum(clue[0:i]) + len(clue[0:i])
+                        for dy in range(0, c - movable):
+                            self.grid[x][before + movable + dy] = 1
 
 
         # Cannot slide much
