@@ -161,14 +161,46 @@ class Nonogram:
                             self.set(x, y, 0, changed, transpose)
 
 
-
-
         print(changed)
         self.print()
 
 
 
+        # Check if first clue is constrained enough (by a wall or the grid)
+        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+            for x in the_rows:
+                clue = clues[x]
 
+                # First non wall space
+                for pos_l in range(0, M):
+                    if self.get(x, pos_l, transpose) != 0:
+                        break
+
+                # Last non wall space in contiguous box
+                for pos_r in range(pos_l, M):
+                    if self.get(x, pos_r, transpose) == 0:
+                        break
+
+                if pos_r < M-1:
+                    pos_r -= 1
+
+                # pos_l = 0
+                # pos_r = min([y-1 if self.get(x, y, transpose) == 0 else M-1 for y in range(1, M)])
+
+                if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
+                    c = clue[0]
+                    movable = pos_r + 1 - pos_l - c
+
+                    for y in range(pos_l + movable, pos_r - movable + 1):
+                        self.set(x, y, 1, changed, transpose)
+
+
+                # TODO: case where we start from the right
+
+        print(changed)
+        self.print()
+
+        return changed
 
 
 
@@ -181,11 +213,21 @@ class Nonogram:
         print(changed)
         self.print()
 
+        changed = self.deduce(changed)
 
-        self.deduce(changed)
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
+        changed = self.deduce(changed)
 
-        pass
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+        changed = self.deduce(changed)
+
+        print(changed)
+
+        changed = self.deduce(changed)
+
+        print(changed)
 
 
 
@@ -206,6 +248,21 @@ ans = ((0, 0, 1, 0, 0),
        (0, 1, 1, 1, 0),
        (1, 1, 0, 1, 0),
        (0, 1, 1, 1, 1))
+
+
+
+clues = (
+    (
+        (4, 3), (1, 6, 2), (1, 2, 2, 1, 1), (1, 2, 2, 1, 2), (3, 2, 3),
+        (2, 1, 3), (1, 1, 1), (2, 1, 4, 1), (1, 1, 1, 1, 2), (1, 4, 2),
+        (1, 1, 2, 1), (2, 7, 1), (2, 1, 1, 2), (1, 2, 1), (3, 3)
+    ), (
+        (3, 2), (1, 1, 1, 1), (1, 2, 1, 2), (1, 2, 1, 1, 3), (1, 1, 2, 1),
+        (2, 3, 1, 2), (9, 3), (2, 3), (1, 2), (1, 1, 1, 1),
+        (1, 4, 1), (1, 2, 2, 2), (1, 1, 1, 1, 1, 1, 2), (2, 1, 1, 2, 1, 1), (3, 4, 3, 1)
+    )
+)
+
 
 
 
