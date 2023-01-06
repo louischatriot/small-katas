@@ -118,19 +118,19 @@ class Nonogram:
                             for dy in range(0, c - movable):
                                 self.set(x, before + movable + dy, 1, changed, transpose)
 
-        print(changed)
-        self.print()
+        return changed
 
+
+    def deduce(self, changed):
         rows, cols = get_rows_and_cols(changed)
 
         print(rows)
-
         print(cols)
 
         changed = set()
 
-
         # When one filled square is close to a border
+        # Only case handled for now = glued to a border
         for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
             for x in the_rows:
                 clue = clues[x]
@@ -143,46 +143,14 @@ class Nonogram:
                     if next >= 0:
                         self.set(x, next, 0, changed, transpose)
 
+                # TODO: handle left case
+
+
+
+
 
         print(changed)
         self.print()
-
-
-
-            # if x == N-1:
-                # for dx in range(1, colclue[-1]):
-                    # g[N-1 - dx][y] = 1
-
-                # next = N-1 - colclue[-1]
-                # if next >= 0:
-                    # g[next][y] = 0
-
-
-
-    def deduce_from_filled_square(self, x, y):
-        N, M = self.N, self.M
-        # rowclue = self.rowclues[x]
-        colclue = self.colclues[y]
-        g = self.grid
-
-        if x == N-1:
-            for dx in range(1, colclue[-1]):
-                g[N-1 - dx][y] = 1
-
-            next = N-1 - colclue[-1]
-            if next >= 0:
-                g[next][y] = 0
-
-
-    def deduce_from_square(self, x, y):
-        if self.grid[x][y] == 1:
-            self.deduce_from_filled_square(x, y)
-        elif self.grid[x][y] == 0:
-            self.deduce_from_empty_square(x, y)
-        else:
-            pass   # Nothing to deduce (yet)
-
-
 
 
 
@@ -191,6 +159,18 @@ class Nonogram:
 
 
     def solve(self):
+        self.print_clues()
+        self.print()
+
+        changed = self.deduce_initial()
+
+        print(changed)
+        self.print()
+
+
+        self.deduce(changed)
+
+
         pass
 
 
@@ -198,17 +178,6 @@ class Nonogram:
 
 
 
-
-
-
-
-
-
-
-# res = possibilities((3,4,5), 20)
-
-# for r in res:
-    # print(r)
 
 
 
@@ -230,22 +199,11 @@ start = time()
 
 n = Nonogram(clues)
 
-n.print_clues()
-n.print()
-
-n.deduce_initial()
+res = n.solve()
 
 print("===================== RESULT")
-n.print()
+print(res)
 
-# n.deduce_from_square(4, 3)
-
-# n.print()
-
-
-
-
-# res = possibilities((3,4,5,6,7), 41)
 
 print("==> Duration:", time() - start)
 
