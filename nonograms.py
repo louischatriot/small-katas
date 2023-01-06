@@ -57,60 +57,109 @@ class Nonogram:
         print("========================================================")
 
 
+    def set(self, x, y, value, changed, transpose = False):
+        if transpose:
+            x, y = y, x
+
+        if value != self.grid[x][y]:
+            if self.grid[x][y] == '?':
+                self.grid[x][y] = value
+                changed.add((x, y))
+            else:
+                # Should handle with a return
+                raise ValueError("Wrong guess earlier")
+
+
     def deduce_initial(self):
         N, M = self.N, self.M
         changed = set()
 
         # Cannot slide much
-        for x, clue in enumerate(self.rowclues):
-            movable = M - sum(clue) - (len(clue) - 1)
+        for clues, transpose in [(self.rowclues, False), (self.colclues, True)]:
+            for x, clue in enumerate(clues):
+                movable = M - sum(clue) - (len(clue) - 1)
 
-            if movable == 0:
-                y = 0
-                for _ in range(0, clue[0]):
-                    self.grid[x][y] = 1
-                    y += 1
-
-                for c in clue[1:]:
-                    self.grid[x][y] = 0
-                    y += 1
-
-                    for _ in range(0, c):
-                        self.grid[x][y] = 1
+                if movable == 0:
+                    y = 0
+                    for _ in range(0, clue[0]):
+                        self.set(x, y, 1, changed, transpose)
                         y += 1
 
-            else:
-                for i, c in enumerate(clue):
-                    if c > movable:
-                        before = sum(clue[0:i]) + len(clue[0:i])
-                        for dy in range(0, c - movable):
-                            self.grid[x][before + movable + dy] = 1
+                    for c in clue[1:]:
+                        self.set(x, y, 0, changed, transpose)
+                        y += 1
+
+                        for _ in range(0, c):
+                            self.set(x, y, 1, changed, transpose)
+                            y += 1
+
+                else:
+                    for i, c in enumerate(clue):
+                        if c > movable:
+                            before = sum(clue[0:i]) + len(clue[0:i])
+                            for dy in range(0, c - movable):
+                                self.set(x, before + movable + dy, 1, changed, transpose)
+
+
+        print(changed)
 
 
         # Cannot slide much
-        for y, clue in enumerate(self.colclues):
-            movable = N - sum(clue) - (len(clue) - 1)
+        # for y, clue in enumerate(self.colclues):
+            # movable = N - sum(clue) - (len(clue) - 1)
 
-            if movable == 0:
-                x = 0
-                for _ in range(0, clue[0]):
-                    self.grid[x][y] = 1
-                    x += 1
+            # if movable == 0:
+                # x = 0
+                # for _ in range(0, clue[0]):
+                    # self.grid[x][y] = 1
+                    # x += 1
 
-                for c in clue[1:]:
-                    self.grid[x][y] = 0
-                    x += 1
+                # for c in clue[1:]:
+                    # self.grid[x][y] = 0
+                    # x += 1
 
-                    for _ in range(0, c):
-                        self.grid[x][y] = 1
-                        x += 1
+                    # for _ in range(0, c):
+                        # self.grid[x][y] = 1
+                        # x += 1
 
-            else:
-                for i, c in enumerate(clue):
-                    if c > movable:
-                        before = sum(clue[0:i]) + len(clue[0:i])
-                        for dx in range(0, c - movable):
-                            self.grid[before + movable + dx][y] = 1
+            # else:
+                # for i, c in enumerate(clue):
+                    # if c > movable:
+                        # before = sum(clue[0:i]) + len(clue[0:i])
+                        # for dx in range(0, c - movable):
+                            # self.grid[before + movable + dx][y] = 1
+
+
+    def deduce_from_filled_square(self, x, y):
+        N, M = self.N, self.M
+        rowclue = self.rowclues[x]
+        colclue = self.colclues[y]
+        g = self.grid
+
+        if x == N-1:
+            for dx in range(1, colclue[-1]):
+                g[N-1 - dx][y] = 1
+
+            next = N-1 - colclue[-1]
+            if next >= 0:
+                g[next][y] = 0
+
+
+    def deduce_from_square(self, x, y):
+        if self.grid[x][y] == 1:
+            self.deduce_from_filled_square(x, y)
+        elif self.grid[x][y] == 0:
+            self.deduce_from_empty_square(x, y)
+        else:
+            pass   # Nothing to deduce (yet)
+
+
+
+
+
+
+
+
 
     def solve(self):
         pass
@@ -157,8 +206,11 @@ n.print()
 
 n.deduce_initial()
 
-
 n.print()
+
+# n.deduce_from_square(4, 3)
+
+# n.print()
 
 
 
