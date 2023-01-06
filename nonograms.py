@@ -101,35 +101,6 @@ class Nonogram:
                                 self.set(x, before + movable + dy, 1, changed, transpose)
 
 
-        print(changed)
-
-
-        # Cannot slide much
-        # for y, clue in enumerate(self.colclues):
-            # movable = N - sum(clue) - (len(clue) - 1)
-
-            # if movable == 0:
-                # x = 0
-                # for _ in range(0, clue[0]):
-                    # self.grid[x][y] = 1
-                    # x += 1
-
-                # for c in clue[1:]:
-                    # self.grid[x][y] = 0
-                    # x += 1
-
-                    # for _ in range(0, c):
-                        # self.grid[x][y] = 1
-                        # x += 1
-
-            # else:
-                # for i, c in enumerate(clue):
-                    # if c > movable:
-                        # before = sum(clue[0:i]) + len(clue[0:i])
-                        # for dx in range(0, c - movable):
-                            # self.grid[before + movable + dx][y] = 1
-
-
     def deduce_from_filled_square(self, x, y):
         N, M = self.N, self.M
         rowclue = self.rowclues[x]
