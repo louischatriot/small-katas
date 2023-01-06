@@ -37,6 +37,18 @@ def possibilities(clues, N):
     return res
 
 
+
+def get_rows_and_cols(changed):
+    rows = set()
+    cols = set()
+
+    for x, y in changed:
+        rows.add(x)
+        cols.add(y)
+
+    return (rows, cols)
+
+
 class Nonogram:
     def __init__(self, clues):
         self.colclues = clues[0]
@@ -70,12 +82,18 @@ class Nonogram:
                 raise ValueError("Wrong guess earlier")
 
 
+    def get(self, x, y, transpose = False):
+        if transpose:
+            x, y = y, x
+
+        return self.grid[x][y]
+
+
     def deduce_initial(self):
-        N, M = self.N, self.M
-        changed = set()
+        changed = set()   # Should really keep track of lines and columns separately but easier to debug
 
         # Cannot slide much
-        for clues, transpose in [(self.rowclues, False), (self.colclues, True)]:
+        for clues, transpose, M in [(self.rowclues, False, self.M), (self.colclues, True, self.N)]:
             for x, clue in enumerate(clues):
                 movable = M - sum(clue) - (len(clue) - 1)
 
@@ -100,10 +118,50 @@ class Nonogram:
                             for dy in range(0, c - movable):
                                 self.set(x, before + movable + dy, 1, changed, transpose)
 
+        print(changed)
+        self.print()
+
+        rows, cols = get_rows_and_cols(changed)
+
+        print(rows)
+
+        print(cols)
+
+        changed = set()
+
+
+        # When one filled square is close to a border
+        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+            for x in the_rows:
+                clue = clues[x]
+
+                if self.get(x, M-1, transpose) == 1:
+                    for dy in range(1, clue[-1]):
+                        self.set(x, M-1 - dy, 1, changed, transpose)
+
+                    next = M-1 - clue[-1]
+                    if next >= 0:
+                        self.set(x, next, 0, changed, transpose)
+
+
+        print(changed)
+        self.print()
+
+
+
+            # if x == N-1:
+                # for dx in range(1, colclue[-1]):
+                    # g[N-1 - dx][y] = 1
+
+                # next = N-1 - colclue[-1]
+                # if next >= 0:
+                    # g[next][y] = 0
+
+
 
     def deduce_from_filled_square(self, x, y):
         N, M = self.N, self.M
-        rowclue = self.rowclues[x]
+        # rowclue = self.rowclues[x]
         colclue = self.colclues[y]
         g = self.grid
 
@@ -177,6 +235,7 @@ n.print()
 
 n.deduce_initial()
 
+print("===================== RESULT")
 n.print()
 
 # n.deduce_from_square(4, 3)
