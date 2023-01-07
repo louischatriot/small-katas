@@ -88,7 +88,7 @@ class Nonogram:
     # Should only be called with complete lines
     def check_correct(self, row = None, col = None):
         clues = self.rowclues[row] if row is not None else self.colclues[col]
-        line = self.grid[row] if row is not None else [self.grid[x][col] for x in range(0, self.N)]
+        line = [c for c in self.grid[row]] if row is not None else [self.grid[x][col] for x in range(0, self.N)]
 
         line.append(0)
         deduced_clues = []
@@ -118,11 +118,11 @@ class Nonogram:
 
             self.row_set[x] += 1
             if self.row_set[x] == self.M:
-                check_correct(x, None)
+                self.check_correct(x, None)
 
             self.col_set[y] += 1
             if self.col_set[y] == self.N:
-                check_correct(None, y)
+                self.check_correct(None, y)
 
             return True
 
@@ -244,11 +244,13 @@ class Nonogram:
         self.print()
 
         changed = self.deduce(changed)
+        self.print()
 
         # Guesses here
 
 
 
+
         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
         changed = self.deduce(changed)
@@ -262,6 +264,8 @@ class Nonogram:
         changed = self.deduce(changed)
 
         print(changed)
+
+        self.print()
 
 
 
@@ -286,17 +290,17 @@ ans = ((0, 0, 1, 0, 0),
 
 
 
-clues = (
-    (
-        (4, 3), (1, 6, 2), (1, 2, 2, 1, 1), (1, 2, 2, 1, 2), (3, 2, 3),
-        (2, 1, 3), (1, 1, 1), (2, 1, 4, 1), (1, 1, 1, 1, 2), (1, 4, 2),
-        (1, 1, 2, 1), (2, 7, 1), (2, 1, 1, 2), (1, 2, 1), (3, 3)
-    ), (
-        (3, 2), (1, 1, 1, 1), (1, 2, 1, 2), (1, 2, 1, 1, 3), (1, 1, 2, 1),
-        (2, 3, 1, 2), (9, 3), (2, 3), (1, 2), (1, 1, 1, 1),
-        (1, 4, 1), (1, 2, 2, 2), (1, 1, 1, 1, 1, 1, 2), (2, 1, 1, 2, 1, 1), (3, 4, 3, 1)
-    )
-)
+# clues = (
+    # (
+        # (4, 3), (1, 6, 2), (1, 2, 2, 1, 1), (1, 2, 2, 1, 2), (3, 2, 3),
+        # (2, 1, 3), (1, 1, 1), (2, 1, 4, 1), (1, 1, 1, 1, 2), (1, 4, 2),
+        # (1, 1, 2, 1), (2, 7, 1), (2, 1, 1, 2), (1, 2, 1), (3, 3)
+    # ), (
+        # (3, 2), (1, 1, 1, 1), (1, 2, 1, 2), (1, 2, 1, 1, 3), (1, 1, 2, 1),
+        # (2, 3, 1, 2), (9, 3), (2, 3), (1, 2), (1, 1, 1, 1),
+        # (1, 4, 1), (1, 2, 2, 2), (1, 1, 1, 1, 1, 1, 2), (2, 1, 1, 2, 1, 1), (3, 4, 3, 1)
+    # )
+# )
 
 
 
@@ -313,28 +317,30 @@ print(n.col_set)
 print("===================== RESULT")
 print(res)
 
+print(n.grid)
+
 
 print("==> Duration:", time() - start)
 
 
-print(n.rowclues)
-print(n.colclues)
-n.print()
-print(n.row_set)
-print(n.col_set)
+# print(n.rowclues)
+# print(n.colclues)
+# n.print()
+# print(n.row_set)
+# print(n.col_set)
 
 
-GGG = n.clone()
+# GGG = n.clone()
 
-print("==========================================")
-print("==========================================")
+# print("==========================================")
+# print("==========================================")
 
 
-print(GGG.rowclues)
-print(GGG.colclues)
-GGG.print()
-print(GGG.row_set)
-print(GGG.col_set)
+# print(GGG.rowclues)
+# print(GGG.colclues)
+# GGG.print()
+# print(GGG.row_set)
+# print(GGG.col_set)
 
 
 
