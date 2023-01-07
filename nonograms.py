@@ -60,6 +60,14 @@ class Nonogram:
         self.col_set = [0 for _ in range(0, self.M)]
 
 
+    def clone(self):
+        n = Nonogram((self. colclues, self.rowclues))
+        n.grid = [[c for c in line] for line in self.grid]
+        n.row_set = [c for c in self.row_set]
+        n.col_set = [c for c in self.col_set]
+        return n
+
+
     def print(self):
         print('\n'.join([' '.join(['O' if c == 1 else ('x' if c == 0 else '.') for c in l]) + '   ' + ','.join([str(c) for c in self.rowclues[x]]) for x, l in enumerate(self.grid)]))
         print('')
@@ -162,10 +170,6 @@ class Nonogram:
 
     def deduce(self, changed):
         rows, cols = get_rows_and_cols(changed)
-
-        print(rows)
-        print(cols)
-
         changed = set()
 
         # When one filled square is close to a border
@@ -185,10 +189,6 @@ class Nonogram:
                 # TODO: handle left case
 
 
-        print(changed)
-        self.print()
-
-
         # Check if row is already done
         for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
             for x in the_rows:
@@ -198,11 +198,6 @@ class Nonogram:
                     for y in range(0, M):
                         if self.get(x, y, transpose) == '?':
                             self.set(x, y, 0, changed, transpose)
-
-
-        print(changed)
-        self.print()
-
 
 
         # Check if first clue is constrained enough (by a wall or the grid)
@@ -223,9 +218,6 @@ class Nonogram:
                 if pos_r < M-1:
                     pos_r -= 1
 
-                # pos_l = 0
-                # pos_r = min([y-1 if self.get(x, y, transpose) == 0 else M-1 for y in range(1, M)])
-
                 # TODO: check if mistake here, and should only use if the filled square is central enough
                 if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
                     c = clue[0]
@@ -237,8 +229,6 @@ class Nonogram:
 
                 # TODO: case where we start from the right
 
-        print(changed)
-        self.print()
 
         return changed
 
@@ -254,6 +244,10 @@ class Nonogram:
         self.print()
 
         changed = self.deduce(changed)
+
+        # Guesses here
+
+
 
         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
@@ -305,11 +299,6 @@ clues = (
 )
 
 
-n = Nonogram(clues)
-n.check_correct(0, None)
-
-1/0
-
 
 
 start = time()
@@ -326,6 +315,30 @@ print(res)
 
 
 print("==> Duration:", time() - start)
+
+
+print(n.rowclues)
+print(n.colclues)
+n.print()
+print(n.row_set)
+print(n.col_set)
+
+
+GGG = n.clone()
+
+print("==========================================")
+print("==========================================")
+
+
+print(GGG.rowclues)
+print(GGG.colclues)
+GGG.print()
+print(GGG.row_set)
+print(GGG.col_set)
+
+
+
+
 
 
 
