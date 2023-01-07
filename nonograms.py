@@ -201,7 +201,6 @@ class Nonogram:
                 clue = clues[x]
 
                 # Left
-                # TODO: TEST THIS FOR REAL
                 l = 0
                 for c in clue:
                     for l in range(l, M):
@@ -221,14 +220,21 @@ class Nonogram:
 
 
                 # Right
-                # TODO: do the general case
-                if self.get(x, M-1, transpose) == 1:
-                    for dy in range(1, clue[-1]):
-                        self.set(x, M-1 - dy, 1, changed, transpose)
+                r = M - 1
+                for c in reversed(clue):
+                    for r in range(r, -1, -1):
+                        if self.get(x, r, transpose) != 0:
+                            break
 
-                    next = M-1 - clue[-1]
-                    if next >= 0:
-                        self.set(x, next, 0, changed, transpose)
+                    if self.get(x, r, transpose) != 1:
+                        break
+
+                    for dy in range(1, c):
+                        self.set(x, r - dy, 1, changed, transpose)
+
+                    r -= c
+                    if r >= 0:
+                        self.set(x, r, 0, changed, transpose)
 
 
         # Check if first clue is constrained enough (by a wall or the grid)
@@ -287,17 +293,48 @@ class Nonogram:
             return self.guess()
 
 
-    def guess(self, t=0):
+    # Actually worse than before, let's check if it's because it's buggy or a bad idea
+    def next_guess(self):
         # TODO: keep track of the next instead of looping on the entire grid like an idiot
-        done = False
+        # Also, assuming a square shape for now
+        for round in range(0, self.N // 2):
+            for y in range(round, self.N - round):
+                if self.grid[round][y] == '?':
+                    return (round, y)
+
+            for x in range(round + 1, self.N - round):
+                if self.grid[x][round] == '?':
+                    return (x, round)
+
+            for y in range(self.N - 1 - round, round - 1, -1):
+                if self.grid[round][y] == '?':
+                    return (round, y)
+
+            for x in range(self.N - 2 - round, round, -1):
+                if self.grid[x][round] == '?':
+                    return (x, round)
+
+        # Base case
         for x in range(0, self.N):
             for y in range(0, self.M):
                 if self.grid[x][y] == '?':
-                    done = True
-                if done:
-                    break
-            if done:
-                break
+                    return (x, y)
+
+
+
+    def guess(self, t=0):
+        # done = False
+        # for x in range(0, self.N):
+            # for y in range(0, self.M):
+                # if self.grid[x][y] == '?':
+                    # done = True
+                # if done:
+                    # break
+            # if done:
+                # break
+
+        x, y = self.next_guess()
+
 
         for g in [1, 0]:
             n = self.clone()
@@ -364,6 +401,24 @@ clues = (
     )
 )
 
+ans = (
+    (0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0),
+    (0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0),
+    (1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0),
+    (1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1),
+    (1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1),
+    (1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1),
+    (0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0),
+    (0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0),
+    (0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0),
+    (0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),
+    (0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0),
+    (1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0),
+    (1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1),
+    (1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
+    (0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1)
+)
+
 
 
 
@@ -378,6 +433,15 @@ print(n.col_set)
 
 print("===================== RESULT")
 print(res)
+
+res = tuple([tuple(l) for l in res])
+
+print(res)
+
+if res == ans:
+    print("FUCK YEAH")
+else:
+    print("OH NOES")
 
 
 print("==> Duration:", time() - start)
