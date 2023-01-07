@@ -323,17 +323,18 @@ class Nonogram:
 
 
     def guess(self, t=0):
-        # done = False
+        done = False
         # for x in range(0, self.N):
-            # for y in range(0, self.M):
-                # if self.grid[x][y] == '?':
-                    # done = True
-                # if done:
-                    # break
-            # if done:
-                # break
+        for x in range(self.N - 1, -1, -1):
+            for y in range(0, self.M):
+                if self.grid[x][y] == '?':
+                    done = True
+                if done:
+                    break
+            if done:
+                break
 
-        x, y = self.next_guess()
+        # x, y = self.next_guess()
 
 
         for g in [1, 0]:
