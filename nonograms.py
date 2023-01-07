@@ -288,9 +288,12 @@ class Nonogram:
         self.print()
 
         if self.todo == 0:
-            return self.grid   # Tuple-ize
+            res = self.grid
         else:
-            return self.guess()
+            res = self.guess()
+
+        res = tuple([tuple(l) for l in res])
+        return res
 
 
     # Actually worse than before, let's check if it's because it's buggy or a bad idea
