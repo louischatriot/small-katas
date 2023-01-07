@@ -56,10 +56,18 @@ class Nonogram:
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
         self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
+        self.row_set = [0 for _ in range(0, self.N)]
+        self.col_set = [0 for _ in range(0, self.M)]
 
 
     def print(self):
-        print('\n'.join([' '.join(['O' if c == 1 else ('x' if c == 0 else '.') for c in l]) for l in self.grid]))
+        print('\n'.join([' '.join(['O' if c == 1 else ('x' if c == 0 else '.') for c in l]) + '   ' + ','.join([str(c) for c in self.rowclues[x]]) for x, l in enumerate(self.grid)]))
+        print('')
+        for ci in range(0, max([len(c) for c in self.colclues])):
+            l = ''
+            for c in self.colclues:
+                l += (str(c[ci]) if ci < len(c) else ' ') + ' '
+            print(l)
         print("========================================================")
 
 
@@ -69,17 +77,48 @@ class Nonogram:
         print("========================================================")
 
 
+    # Should only be called with complete lines
+    def check_correct(self, row = None, col = None):
+        clues = self.rowclues[row] if row is not None else self.colclues[col]
+        line = self.grid[row] if row is not None else [self.grid[x][col] for x in range(0, self.N)]
+
+        line.append(0)
+        deduced_clues = []
+        current = 0
+        for c in line:
+            if c == 1:
+                current += 1
+            else:
+                if current != 0:
+                    deduced_clues.append(current)
+                    current = 0
+
+        if tuple(deduced_clues) != clues:
+            raise ValueError("Clue not matched")
+
+
     def set(self, x, y, value, changed, transpose = False):
         if transpose:
             x, y = y, x
 
-        if value != self.grid[x][y]:
-            if self.grid[x][y] == '?':
-                self.grid[x][y] = value
-                changed.add((x, y))
-            else:
-                # Should handle with a return
-                raise ValueError("Wrong guess earlier")
+        if value == self.grid[x][y]:
+            return True
+
+        if self.grid[x][y] == '?':
+            self.grid[x][y] = value
+            changed.add((x, y))
+
+            self.row_set[x] += 1
+            if self.row_set[x] == self.M:
+                check_correct(x, None)
+
+            self.col_set[y] += 1
+            if self.col_set[y] == self.N:
+                check_correct(None, y)
+
+            return True
+
+        raise ValueError("Incompatibility")
 
 
     def get(self, x, y, transpose = False):
@@ -187,6 +226,7 @@ class Nonogram:
                 # pos_l = 0
                 # pos_r = min([y-1 if self.get(x, y, transpose) == 0 else M-1 for y in range(1, M)])
 
+                # TODO: check if mistake here, and should only use if the filled square is central enough
                 if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
                     c = clue[0]
                     movable = pos_r + 1 - pos_l - c
@@ -238,6 +278,7 @@ class Nonogram:
 
 
 
+
 clues = (
     ((1, 1), (4,), (1, 1, 1), (3,), (1,)),
     ((1,), (2,), (3,), (2, 1), (4,))
@@ -264,6 +305,11 @@ clues = (
 )
 
 
+n = Nonogram(clues)
+n.check_correct(0, None)
+
+1/0
+
 
 
 start = time()
@@ -271,6 +317,9 @@ start = time()
 n = Nonogram(clues)
 
 res = n.solve()
+
+print(n.row_set)
+print(n.col_set)
 
 print("===================== RESULT")
 print(res)
