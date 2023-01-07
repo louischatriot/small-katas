@@ -53,12 +53,17 @@ class Nonogram:
     def __init__(self, clues):
         self.colclues = clues[0]
         self.rowclues = clues[1]
+
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
         self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
+
         self.row_set = [0 for _ in range(0, self.N)]
         self.col_set = [0 for _ in range(0, self.M)]
+
+        # TODO: check if next_in_line is enough
         self.todo = self.M * self.N
+        self.next_in_line = 0
 
 
     def clone(self):
@@ -66,6 +71,8 @@ class Nonogram:
         n.grid = [[c for c in line] for line in self.grid]
         n.row_set = [c for c in self.row_set]
         n.col_set = [c for c in self.col_set]
+        n.todo = self.todo
+        n.next_in_line = self.next_in_line
         return n
 
 
@@ -118,6 +125,7 @@ class Nonogram:
             changed.add((x, y))
 
             self.todo -= 1
+            self.next_in_line = max(self.next_in_line, x * self.M + y + 1)
 
             self.row_set[x] += 1
             if self.row_set[x] == self.M:
@@ -175,32 +183,6 @@ class Nonogram:
         rows, cols = get_rows_and_cols(changed)
         changed = set()
 
-        # When one filled square is close to a border
-        # Only case handled for now = glued to a border
-        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
-            for x in the_rows:
-                clue = clues[x]
-
-                # Left
-                if self.get(x, 0, transpose) == 1:
-                    for dy in range(1, clue[0]):
-                        self.set(x, dy, 1, changed, transpose)
-
-                    next = clue[0]
-                    if next < M:
-                        self.set(x, next, 0, changed, transpose)
-
-                # Right
-                if self.get(x, M-1, transpose) == 1:
-                    for dy in range(1, clue[-1]):
-                        self.set(x, M-1 - dy, 1, changed, transpose)
-
-                    next = M-1 - clue[-1]
-                    if next >= 0:
-                        self.set(x, next, 0, changed, transpose)
-
-
-
         # Check if row is already done
         for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
             for x in the_rows:
@@ -210,6 +192,43 @@ class Nonogram:
                     for y in range(0, M):
                         if self.get(x, y, transpose) == '?':
                             self.set(x, y, 0, changed, transpose)
+
+
+        # When one filled square is close to a border
+        # Only case handled for now = glued to a border
+        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+            for x in the_rows:
+                clue = clues[x]
+
+                # Left
+                # TODO: TEST THIS FOR REAL
+                l = 0
+                for c in clue:
+                    for l in range(l, M):
+                        if self.get(x, l, transpose) != 0:
+                            break
+
+                    # Could keep track of done clues to avoid re setting the same cell over and over again ...
+                    if self.get(x, l, transpose) != 1:
+                        break
+
+                    for dy in range(1, c):
+                        self.set(x, l + dy, 1, changed, transpose)
+
+                    l += c
+                    if l < M:
+                        self.set(x, l, 0, changed, transpose)
+
+
+                # Right
+                # TODO: do the general case
+                if self.get(x, M-1, transpose) == 1:
+                    for dy in range(1, clue[-1]):
+                        self.set(x, M-1 - dy, 1, changed, transpose)
+
+                    next = M-1 - clue[-1]
+                    if next >= 0:
+                        self.set(x, next, 0, changed, transpose)
 
 
         # Check if first clue is constrained enough (by a wall or the grid)
@@ -223,6 +242,7 @@ class Nonogram:
                         break
 
                 # Last non wall space in contiguous box
+                # Works as long as there is at least one clue / line is not full of x
                 for pos_r in range(pos_l, M):
                     if self.get(x, pos_r, transpose) == 0:
                         break
@@ -242,8 +262,10 @@ class Nonogram:
                 # TODO: case where we start from the right
 
 
-        return changed
+        # TODO: Check if spacing gives us enough information to put some x
 
+
+        return changed
 
 
     def solve(self):
@@ -259,7 +281,54 @@ class Nonogram:
 
         self.print()
 
+        if self.todo == 0:
+            return self.grid   # Tuple-ize
+        else:
+            return self.guess()
 
+
+    def guess(self, t=0):
+        # TODO: keep track of the next instead of looping on the entire grid like an idiot
+        done = False
+        for x in range(0, self.N):
+            for y in range(0, self.M):
+                if self.grid[x][y] == '?':
+                    done = True
+                if done:
+                    break
+            if done:
+                break
+
+        for g in [1, 0]:
+            n = self.clone()
+            changed = set()
+
+            # if t <= 5:
+                # print("GUESSING FOR", x, y, "GUESS IS", g)
+
+            try:
+                n.set(x, y, g, changed, False)
+                while len(changed) > 0:
+                    changed = n.deduce(changed)
+            except:
+                continue   # Wrong guess
+
+            # if t <= 5:
+                # n.print()
+                # print(n.todo)
+            # else:
+                # 1/0
+
+            if n.todo == 0:
+                n.print()
+                return n.grid
+
+            res = n.guess(t+1)
+            if res is not None:
+                return res
+
+
+        return None
 
 
 
