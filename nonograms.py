@@ -58,6 +58,7 @@ class Nonogram:
         self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
         self.row_set = [0 for _ in range(0, self.N)]
         self.col_set = [0 for _ in range(0, self.M)]
+        self.todo = self.M * self.N
 
 
     def clone(self):
@@ -115,6 +116,8 @@ class Nonogram:
         if self.grid[x][y] == '?':
             self.grid[x][y] = value
             changed.add((x, y))
+
+            self.todo -= 1
 
             self.row_set[x] += 1
             if self.row_set[x] == self.M:
@@ -178,6 +181,16 @@ class Nonogram:
             for x in the_rows:
                 clue = clues[x]
 
+                # Left
+                if self.get(x, 0, transpose) == 1:
+                    for dy in range(1, clue[0]):
+                        self.set(x, dy, 1, changed, transpose)
+
+                    next = clue[0]
+                    if next < M:
+                        self.set(x, next, 0, changed, transpose)
+
+                # Right
                 if self.get(x, M-1, transpose) == 1:
                     for dy in range(1, clue[-1]):
                         self.set(x, M-1 - dy, 1, changed, transpose)
@@ -186,7 +199,6 @@ class Nonogram:
                     if next >= 0:
                         self.set(x, next, 0, changed, transpose)
 
-                # TODO: handle left case
 
 
         # Check if row is already done
@@ -240,32 +252,13 @@ class Nonogram:
 
         changed = self.deduce_initial()
 
-        print(changed)
         self.print()
 
-        changed = self.deduce(changed)
-        self.print()
-
-        # Guesses here
-
-
-
-
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-
-        changed = self.deduce(changed)
-
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-
-        changed = self.deduce(changed)
-
-        print(changed)
-
-        changed = self.deduce(changed)
-
-        print(changed)
+        while len(changed) > 0 and self.todo > 0:
+            changed = self.deduce(changed)
 
         self.print()
+
 
 
 
@@ -290,17 +283,17 @@ ans = ((0, 0, 1, 0, 0),
 
 
 
-# clues = (
-    # (
-        # (4, 3), (1, 6, 2), (1, 2, 2, 1, 1), (1, 2, 2, 1, 2), (3, 2, 3),
-        # (2, 1, 3), (1, 1, 1), (2, 1, 4, 1), (1, 1, 1, 1, 2), (1, 4, 2),
-        # (1, 1, 2, 1), (2, 7, 1), (2, 1, 1, 2), (1, 2, 1), (3, 3)
-    # ), (
-        # (3, 2), (1, 1, 1, 1), (1, 2, 1, 2), (1, 2, 1, 1, 3), (1, 1, 2, 1),
-        # (2, 3, 1, 2), (9, 3), (2, 3), (1, 2), (1, 1, 1, 1),
-        # (1, 4, 1), (1, 2, 2, 2), (1, 1, 1, 1, 1, 1, 2), (2, 1, 1, 2, 1, 1), (3, 4, 3, 1)
-    # )
-# )
+clues = (
+    (
+        (4, 3), (1, 6, 2), (1, 2, 2, 1, 1), (1, 2, 2, 1, 2), (3, 2, 3),
+        (2, 1, 3), (1, 1, 1), (2, 1, 4, 1), (1, 1, 1, 1, 2), (1, 4, 2),
+        (1, 1, 2, 1), (2, 7, 1), (2, 1, 1, 2), (1, 2, 1), (3, 3)
+    ), (
+        (3, 2), (1, 1, 1, 1), (1, 2, 1, 2), (1, 2, 1, 1, 3), (1, 1, 2, 1),
+        (2, 3, 1, 2), (9, 3), (2, 3), (1, 2), (1, 1, 1, 1),
+        (1, 4, 1), (1, 2, 2, 2), (1, 1, 1, 1, 1, 1, 2), (2, 1, 1, 2, 1, 1), (3, 4, 3, 1)
+    )
+)
 
 
 
@@ -316,8 +309,6 @@ print(n.col_set)
 
 print("===================== RESULT")
 print(res)
-
-print(n.grid)
 
 
 print("==> Duration:", time() - start)
