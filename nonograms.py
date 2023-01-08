@@ -77,12 +77,12 @@ class Nonogram:
 
 
     def print(self):
-        print('\n'.join([' '.join(['O' if c == 1 else ('x' if c == 0 else '.') for c in l]) + '   ' + ','.join([str(c) for c in self.rowclues[x]]) for x, l in enumerate(self.grid)]))
+        print('\n'.join([' '.join(['[]' if c == 1 else ('. ' if c == 0 else '? ') for c in l]) + '   ' + ','.join([str(c) for c in self.rowclues[x]]) for x, l in enumerate(self.grid)]))
         print('')
         for ci in range(0, max([len(c) for c in self.colclues])):
             l = ''
             for c in self.colclues:
-                l += (str(c[ci]) if ci < len(c) else ' ') + ' '
+                l += (str(c[ci]) if ci < len(c) else ' ') + '  '
             print(l)
         print("========================================================")
 
@@ -298,6 +298,39 @@ class Nonogram:
 
     # Actually worse than before, let's check if it's because it's buggy or a bad idea
     def next_guess(self):
+        for xu in range(0, self.N):
+            if self.row_set[xu] < self.M:
+                break
+
+        for xb in range(self.N - 1, -1, -1):
+            if self.row_set[xb] < self.M:
+                break
+
+        x0 = xu if self.row_set[xu] > self.row_set[xb] else xb
+
+        for yu in range(0, self.M):
+            if self.col_set[yu] < self.N:
+                break
+
+        for yb in range(self.M - 1, -1, -1):
+            if self.col_set[yb] < self.N:
+                break
+
+        y0 = yu if self.col_set[yu] > self.col_set[yb] else yb
+
+        if self.row_set[x0] > self.col_set[y0]:
+            for y in range(0, self.M):
+                if self.grid[x0][y] == '?':
+                    return (x0, y)
+        else:
+            for x in range(0, self.N):
+                if self.grid[x][y0] == '?':
+                    return (x, y0)
+
+
+        raise ValueError("WAAAAAAT")
+
+
         # TODO: keep track of the next instead of looping on the entire grid like an idiot
         # Also, assuming a square shape for now
         for round in range(0, self.N // 2):
@@ -326,26 +359,23 @@ class Nonogram:
 
 
     def guess(self, t=0):
-        done = False
-        # for x in range(0, self.N):
-        for x in range(self.N - 1, -1, -1):
-            for y in range(0, self.M):
-                if self.grid[x][y] == '?':
-                    done = True
-                if done:
-                    break
-            if done:
-                break
+        x, y = self.next_guess()
 
-        # x, y = self.next_guess()
 
+        # done = False
+        # # for x in range(0, self.N):
+        # for x in range(self.N - 1, -1, -1):
+            # for y in range(0, self.M):
+                # if self.grid[x][y] == '?':
+                    # done = True
+                # if done:
+                    # break
+            # if done:
+                # break
 
         for g in [1, 0]:
             n = self.clone()
             changed = set()
-
-            # if t <= 5:
-                # print("GUESSING FOR", x, y, "GUESS IS", g)
 
             try:
                 n.set(x, y, g, changed, False)
@@ -353,12 +383,6 @@ class Nonogram:
                     changed = n.deduce(changed)
             except:
                 continue   # Wrong guess
-
-            # if t <= 5:
-                # n.print()
-                # print(n.todo)
-            # else:
-                # 1/0
 
             if n.todo == 0:
                 n.print()
@@ -372,6 +396,9 @@ class Nonogram:
         return None
 
 
+def solve(clues):
+    n = Nonogram(clues)
+    return n.solve()
 
 
 
@@ -424,6 +451,10 @@ ans = (
 )
 
 
+clues = (((2,), (8,), (3, 2), (6, 2, 2), (1, 1, 1, 1), (1, 2, 1, 1, 1, 1), (1, 1, 2, 1, 1, 1), (1, 1, 1, 1), (1, 1, 1, 1, 1), (1, 4, 1, 1, 1), (1, 1, 1, 1), (6, 2, 2), (3, 2), (8,), (2,)), ((7,), (1, 1), (1, 2, 2, 1), (1, 1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (4, 4), (3, 7, 3), (3, 3), (1, 9, 1), (1, 1), (1, 1), (1, 9, 1), (3, 3), (1, 1)))
+
+
+
 
 
 start = time()
@@ -438,9 +469,6 @@ print(n.col_set)
 print("===================== RESULT")
 print(res)
 
-res = tuple([tuple(l) for l in res])
-
-print(res)
 
 if res == ans:
     print("FUCK YEAH")
