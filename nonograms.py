@@ -50,29 +50,34 @@ def get_rows_and_cols(changed):
 
 
 class Nonogram:
-    def __init__(self, clues):
+    def __init__(self, clues, clone=False):
         self.colclues = clues[0]
         self.rowclues = clues[1]
-
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
-        self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
 
-        self.row_set = [0 for _ in range(0, self.N)]
-        self.col_set = [0 for _ in range(0, self.M)]
+        if not clone:
+            self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
+            self.row_set = [0 for _ in range(0, self.N)]
+            self.col_set = [0 for _ in range(0, self.M)]
+            self.todo = self.M * self.N
 
-        # TODO: check if next_in_line is enough
-        self.todo = self.M * self.N
-        self.next_in_line = 0
+            self.done_up_to = {
+                False: { 'left': [0 for _ in range(0, self.M)], 'right': [0 for _ in range(0, self.M)] },
+                True: { 'left': [0 for _ in range(0, self.N)], 'right': [0 for _ in range(0, self.N)] }
+            }
 
 
     def clone(self):
-        n = Nonogram((self. colclues, self.rowclues))
+        n = Nonogram((self. colclues, self.rowclues), True)
         n.grid = [[c for c in line] for line in self.grid]
         n.row_set = [c for c in self.row_set]
         n.col_set = [c for c in self.col_set]
         n.todo = self.todo
-        n.next_in_line = self.next_in_line
+        n.done_up_to = {
+            False: { 'left': [i for i in self.done_up_to[False]['left']], 'right': [i for i in self.done_up_to[False]['right']] },
+            True: { 'left': [i for i in self.done_up_to[True]['left']], 'right': [i for i in self.done_up_to[True]['right']] }
+        }
         return n
 
 
@@ -125,7 +130,6 @@ class Nonogram:
             changed.add((x, y))
 
             self.todo -= 1
-            self.next_in_line = max(self.next_in_line, x * self.M + y + 1)
 
             self.row_set[x] += 1
             if self.row_set[x] == self.M:
@@ -242,7 +246,7 @@ class Nonogram:
             for x in the_rows:
                 clue = clues[x]
 
-                # First non wall space
+                # START FROM LEFT
                 for pos_l in range(0, M):
                     if self.get(x, pos_l, transpose) != 0:
                         break
@@ -253,7 +257,6 @@ class Nonogram:
                     if self.get(x, pos_r, transpose) == 0:
                         break
 
-                # TODO: WTF
                 if pos_r < M-1:
                     pos_r -= 1
 
@@ -274,7 +277,6 @@ class Nonogram:
 
 
                 # START FROM RIGHT
-                # TODO: case where we start from the right
                 for pos_r in range(M-1, -1, -1):
                     if self.get(x, pos_r, transpose) != 0:
                         break
@@ -283,7 +285,6 @@ class Nonogram:
                     if self.get(x, pos_l, transpose) == 0:
                         break
 
-                # TODO: WTF
                 if pos_l > 0:
                     pos_l += 1
 
@@ -295,7 +296,7 @@ class Nonogram:
                     for y in range(pos_l + movable, pos_r - movable + 1):
                         self.set(x, y, 1, changed, transpose)
 
-                    # From the right, TODO FIX
+                    # From the right
                     for y0 in range(M-1, M-1 - (c-1), -1):
                         if self.get(x, y0, transpose) == 1:
                             for y in range(y0, M-1 - c, -1):
@@ -358,10 +359,34 @@ class Nonogram:
             for y in range(0, self.M):
                 if self.grid[x0][y] == '?':
                     return (x0, y)
+
+                # if y % 2 == 0:
+                    # y0 = y // 2
+                # else:
+                    # y0 = self.M - y // 2 - 1
+
+                # if self.grid[x0][y0] == '?':
+                    # return (x0, y0)
+
+
+
+
         else:
             for x in range(0, self.N):
                 if self.grid[x][y0] == '?':
                     return (x, y0)
+
+                # if x % 2 == 0:
+                    # x0 = x // 2
+                # else:
+                    # x0 = self.N - x // 2 - 1
+
+                # if self.grid[x0][y0] == '?':
+                    # return (x0, y0)
+
+
+
+
 
 
         raise ValueError("WAAAAAAT")
