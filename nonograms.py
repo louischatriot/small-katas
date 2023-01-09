@@ -77,7 +77,7 @@ class Nonogram:
 
 
     def print(self):
-        print('\n'.join([' '.join(['[]' if c == 1 else ('. ' if c == 0 else '? ') for c in l]) + '   ' + ','.join([str(c) for c in self.rowclues[x]]) for x, l in enumerate(self.grid)]))
+        print('\n'.join([' '.join(['[]' if c == 1 else ('x ' if c == 0 else '. ') for c in l]) + '   ' + ','.join([str(c) for c in self.rowclues[x]]) for x, l in enumerate(self.grid)]))
         print('')
         for ci in range(0, max([len(c) for c in self.colclues])):
             l = ''
@@ -253,6 +253,7 @@ class Nonogram:
                     if self.get(x, pos_r, transpose) == 0:
                         break
 
+                # TODO: WTF
                 if pos_r < M-1:
                     pos_r -= 1
 
@@ -261,11 +262,45 @@ class Nonogram:
                     c = clue[0]
                     movable = pos_r + 1 - pos_l - c
 
+                    # Filling the middle
                     for y in range(pos_l + movable, pos_r - movable + 1):
                         self.set(x, y, 1, changed, transpose)
 
+                    # Clue close to the left
+                    for y0 in range(0, c-1):
+                        if self.get(x, y0, transpose) == 1:
+                            for y in range(y0, c):
+                                self.set(x, y, 1, changed, transpose)
 
+
+                # START FROM RIGHT
                 # TODO: case where we start from the right
+                for pos_r in range(M-1, -1, -1):
+                    if self.get(x, pos_r, transpose) != 0:
+                        break
+
+                for pos_l in range(pos_r, -1, -1):
+                    if self.get(x, pos_l, transpose) == 0:
+                        break
+
+                # TODO: WTF
+                if pos_l > 0:
+                    pos_l += 1
+
+                if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
+                    c = clue[-1]
+                    movable = pos_r + 1 - pos_l - c
+
+                    # Filling the middle
+                    for y in range(pos_l + movable, pos_r - movable + 1):
+                        self.set(x, y, 1, changed, transpose)
+
+                    # From the right, TODO FIX
+                    for y0 in range(M-1, M-1 - (c-1), -1):
+                        if self.get(x, y0, transpose) == 1:
+                            for y in range(y0, M-1 - c, -1):
+                                self.set(x, y, 1, changed, transpose)
+
 
 
         # TODO: Check if spacing gives us enough information to put some x
@@ -285,6 +320,7 @@ class Nonogram:
         while len(changed) > 0 and self.todo > 0:
             changed = self.deduce(changed)
 
+        print("========> AFTER DEDUCTIONS")
         self.print()
 
         if self.todo == 0:
@@ -419,7 +455,7 @@ ans = ((0, 0, 1, 0, 0),
        (0, 1, 1, 1, 1))
 
 
-
+# Puppy
 clues = (
     (
         (4, 3), (1, 6, 2), (1, 2, 2, 1, 1), (1, 2, 2, 1, 2), (3, 2, 3),
@@ -451,7 +487,21 @@ ans = (
 )
 
 
+# Car
 clues = (((2,), (8,), (3, 2), (6, 2, 2), (1, 1, 1, 1), (1, 2, 1, 1, 1, 1), (1, 1, 2, 1, 1, 1), (1, 1, 1, 1), (1, 1, 1, 1, 1), (1, 4, 1, 1, 1), (1, 1, 1, 1), (6, 2, 2), (3, 2), (8,), (2,)), ((7,), (1, 1), (1, 2, 2, 1), (1, 1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (4, 4), (3, 7, 3), (3, 3), (1, 9, 1), (1, 1), (1, 1), (1, 9, 1), (3, 3), (1, 1)))
+
+
+# Stroller
+clues = (((2, 3, 3), (5, 6, 1), (1, 4, 4), (1, 2, 2, 3), (1, 1, 3), (1, 4), (2, 1), (2,), (3, 1), (3, 1, 3), (1, 1, 1, 2, 2), (1, 1, 1, 1, 1, 1), (2, 1, 1, 2, 2), (3, 1, 3), (3, 1)), ((3,), (2, 1), (4, 3), (3, 1, 2), (2, 1, 1), (1, 2, 2, 1), (1, 1, 1, 2, 1), (2, 3, 1, 1), (3, 9), (3, 1), (4, 1, 3, 1), (2, 2, 2, 2), (2, 2, 1, 1, 1), (1, 1, 2, 2), (2, 2, 3)))
+
+
+
+# 38 ms
+clues = (((2, 3, 2, 1), (1, 1, 1, 2, 1, 2), (1, 1, 1, 2, 1), (1, 3, 3), (1, 1, 1, 3, 1, 2), (1, 1, 1, 1, 1, 1), (2, 3, 4, 1), (1, 1, 3, 1), (6, 1, 1, 1), (2, 2, 2), (1, 2, 4, 2), (1, 1, 1, 1, 2), (2, 3, 2), (2, 2, 3, 1), (3, 4)), ((2, 2, 4), (1, 3, 1, 2, 2), (1, 1, 1, 2), (1, 1, 1, 1, 1, 2, 1), (1, 1, 1, 1, 2), (1, 3, 1, 1, 3), (1, 1, 1, 3, 1), (3, 2, 2), (2, 1, 1, 1, 1), (1, 2, 1, 1, 4), (2, 3, 1, 1), (2, 2, 2, 1, 2), (1, 4, 2, 1), (1, 1, 2, 1), (2, 6, 1)))
+
+
+# 2s
+clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1, 3, 2, 2), (1, 7, 2, 1), (1, 3, 1, 3), (1, 1, 3, 1, 2), (2, 2, 2), (2, 1, 3), (1, 2, 2), (1, 2, 2), (3, 7), (2,)), ((3,), (1, 1), (1, 1), (1, 4, 4), (4, 2, 1), (2, 3, 2, 2), (1, 2, 1, 1, 2, 1), (3, 1, 4, 2), (4, 1, 1, 2), (1, 1, 3), (2, 1, 2, 1), (2, 2, 1, 1), (1, 2, 2, 2, 1), (1, 2, 3, 1), (8,)))
 
 
 
