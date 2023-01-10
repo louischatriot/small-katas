@@ -139,6 +139,13 @@ class Nonogram:
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
 
+            if self.done_up_to[transpose]['left'][x] == y - 1:
+                for yy in range(y, self.M):
+                    if self.get(x, yy, transpose) != '?':
+                        self.done_up_to[transpose]['left'][x] = yy
+                    else:
+                        break
+
             return True
 
         raise ValueError("Incompatibility")
