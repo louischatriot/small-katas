@@ -63,8 +63,8 @@ class Nonogram:
             self.todo = self.M * self.N
 
             self.done_up_to = {
-                False: { 'left': [0 for _ in range(0, self.M)], 'right': [0 for _ in range(0, self.M)] },
-                True: { 'left': [0 for _ in range(0, self.N)], 'right': [0 for _ in range(0, self.N)] }
+                False: { 'left': [0 for _ in range(0, self.M)], 'right': [self.M - 1 for _ in range(0, self.M)] },
+                True: { 'left': [0 for _ in range(0, self.N)], 'right': [self.N - 1 for _ in range(0, self.N)] }
             }
 
 
@@ -139,10 +139,31 @@ class Nonogram:
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
 
-            if self.done_up_to[transpose]['left'][x] == y - 1:
+            if self.done_up_to[False]['left'][x] == y:
                 for yy in range(y, self.M):
-                    if self.get(x, yy, transpose) != '?':
-                        self.done_up_to[transpose]['left'][x] = yy
+                    if self.grid[x][yy] != '?':
+                        self.done_up_to[False]['left'][x] = yy + 1
+                    else:
+                        break
+
+            if self.done_up_to[False]['right'][x] == y:
+                for yy in range(y, -1, -1):
+                    if self.grid[x][yy] != '?':
+                        self.done_up_to[False]['right'][x] = yy - 1
+                    else:
+                        break
+
+            if self.done_up_to[True]['left'][y] == x:
+                for xx in range(x, self.N):
+                    if self.grid[xx][y] != '?':
+                        self.done_up_to[True]['left'][y] = xx + 1
+                    else:
+                        break
+
+            if self.done_up_to[True]['right'][y] == x:
+                for xx in range(x, -1, -1):
+                    if self.grid[xx][y] != '?':
+                        self.done_up_to[True]['right'][y] = xx - 1
                     else:
                         break
 
@@ -325,11 +346,16 @@ class Nonogram:
 
         self.print()
 
+        self.set(14, 4, 1, changed, False)
+
         while len(changed) > 0 and self.todo > 0:
             changed = self.deduce(changed)
 
         print("========> AFTER DEDUCTIONS")
         self.print()
+
+
+        print(self.done_up_to)
 
         if self.todo == 0:
             res = self.grid

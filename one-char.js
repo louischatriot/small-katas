@@ -144,15 +144,6 @@ M
 )
 
 
-//console.log(M)
-
-
-//constructor
-
-//Hel wd"
-
-
-//f = D('return "Hello world"')
 
 
 s = f()
