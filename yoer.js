@@ -10,3 +10,8 @@ l\
 
 
 console.log(M)
+
+
+
+
+constructor return Hello world

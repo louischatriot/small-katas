@@ -1,6 +1,27 @@
 [
 N
 ,
+c
+,
+,
+o
+,
+,
+n
+,
+,
+s
+,
+,
+t
+,
+,
+r
+,
+,
+u
+,
+,
 H
 ,
 ,
@@ -10,83 +31,62 @@ e
 l
 ,
 ,
-o
-,
-,
-w
-,
-,
-r
+W
 ,
 ,
 d
-,
-,
-C
-,
-,
-E
 ,
 ,
 S
 ,
 ,
-c
+V
 ,
 ,
-f
-,
-,
-Q
-,
-,
-G
-,
-,
-L
-,
-,
-R
-,
-,
-Z
-,
-  ,
-  t
-  ,
-  ,
-  i
-  ,
-  ,
-  n
-  ,
-  ,
-  D
+E
 ]
 =
 `
+c
+o
+n
+s
+t
+r
+u
 H
 e
 l
-o
 w
-r
 d
+ 
 ,
 !
- 
-c
-f
-=
->
-(
-)
-m
-t
-i
-n
 `
-m
+C
+=
+c
++
+o
++
+n
++
+s
++
+t
++
+r
++
+u
++
+c
++
+t
++
+o
++
+r
+w
 =
 H
 +
@@ -98,11 +98,11 @@ l
 +
 o
 +
-C
+V
 +
 S
 +
-w
+W
 +
 o
 +
@@ -113,154 +113,50 @@ l
 d
 +
 E
-
-
-
-
-console.log("================")
-console.log(D)
-
-ttt = " "
-ttt = " ".trim()
-console.log(ttt)
-console.log(ttt.length)
-
-
-
-
-K
-  =
-  t
-  +
-  r
-  +
-  i
-  +
-  Z
-
-
-console.log(K)
-
-
-bloup=
-`
+M
+=
 r
-f
-h
-g
-j
++
+e
++
 t
-d
-`
-
-console.log(bloup.split(N))
-
-
-A = 'split'
-B = 'join'
-
-
-ggg = bloup[
-  A
++
+u
++
+r
++
+n
++
+S
++
+W
+f
+=
+C
+[
+C
+]
+[
+C
 ]
 (
-  N
+M
 )
-[B](ttt)
 
 
-console.log(ggg)
+//console.log(M)
 
 
-c = "constructor"
+//constructor
 
-v
-=
-c
-[
-c
-]
-[
-c
-]
+//Hel wd"
 
 
-
-
-console.log(m)
-
-
-
-a = "retre"
-f=v('return a')
+//f = D('return "Hello world"')
 
 
 s = f()
 console.log(s)
-
-
-//v
-//(
-//)
-//{
-//f = () => (m)
-//}
-
-//function f(){return a}
-
-//s = f()
-
-
-//console.log(s)
-
-
-
-
-console.log("===================================")
-console.log("===================================")
-console.log("===================================")
-
-
-
-
-
-
-//[
-//N
-//,
-//t
-//,
-//,
-//r
-//,
-//,
-//i
-//,
-//,
-//m
-//,
-//,
-//j
-//,
-//,
-//o
-//,
-//,
-//n
-//]
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
