@@ -66,6 +66,10 @@ class Nonogram:
                 False: { 'left': [0 for _ in range(0, self.M)], 'right': [self.M - 1 for _ in range(0, self.M)] },
                 True: { 'left': [0 for _ in range(0, self.N)], 'right': [self.N - 1 for _ in range(0, self.N)] }
             }
+            self.clue_done_up_to = {
+                False: { 'left': [0 for _ in range(0, self.M)], 'right': [0 for _ in range(0, self.M)] },
+                True: { 'left': [0 for _ in range(0, self.N)], 'right': [0 for _ in range(0, self.N)] }
+            }
 
 
     def clone(self):
@@ -77,6 +81,11 @@ class Nonogram:
         n.done_up_to = {
             False: { 'left': [i for i in self.done_up_to[False]['left']], 'right': [i for i in self.done_up_to[False]['right']] },
             True: { 'left': [i for i in self.done_up_to[True]['left']], 'right': [i for i in self.done_up_to[True]['right']] }
+        }
+
+        n.clue_done_up_to = {
+            False: { 'left': [i for i in self.clue_done_up_to[False]['left']], 'right': [i for i in self.clue_done_up_to[False]['right']] },
+            True: { 'left': [i for i in self.clue_done_up_to[True]['left']], 'right': [i for i in self.clue_done_up_to[True]['right']] }
         }
         return n
 
@@ -139,33 +148,33 @@ class Nonogram:
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
 
-            if self.done_up_to[False]['left'][x] == y:
-                for yy in range(y, self.M):
-                    if self.grid[x][yy] != '?':
-                        self.done_up_to[False]['left'][x] = yy + 1
-                    else:
-                        break
+            # if self.done_up_to[False]['left'][x] == y:
+                # for yy in range(y, self.M):
+                    # if self.grid[x][yy] != '?':
+                        # self.done_up_to[False]['left'][x] = yy + 1
+                    # else:
+                        # break
 
-            if self.done_up_to[False]['right'][x] == y:
-                for yy in range(y, -1, -1):
-                    if self.grid[x][yy] != '?':
-                        self.done_up_to[False]['right'][x] = yy - 1
-                    else:
-                        break
+            # if self.done_up_to[False]['right'][x] == y:
+                # for yy in range(y, -1, -1):
+                    # if self.grid[x][yy] != '?':
+                        # self.done_up_to[False]['right'][x] = yy - 1
+                    # else:
+                        # break
 
-            if self.done_up_to[True]['left'][y] == x:
-                for xx in range(x, self.N):
-                    if self.grid[xx][y] != '?':
-                        self.done_up_to[True]['left'][y] = xx + 1
-                    else:
-                        break
+            # if self.done_up_to[True]['left'][y] == x:
+                # for xx in range(x, self.N):
+                    # if self.grid[xx][y] != '?':
+                        # self.done_up_to[True]['left'][y] = xx + 1
+                    # else:
+                        # break
 
-            if self.done_up_to[True]['right'][y] == x:
-                for xx in range(x, -1, -1):
-                    if self.grid[xx][y] != '?':
-                        self.done_up_to[True]['right'][y] = xx - 1
-                    else:
-                        break
+            # if self.done_up_to[True]['right'][y] == x:
+                # for xx in range(x, -1, -1):
+                    # if self.grid[xx][y] != '?':
+                        # self.done_up_to[True]['right'][y] = xx - 1
+                    # else:
+                        # break
 
             return True
 
@@ -233,8 +242,11 @@ class Nonogram:
                 clue = clues[x]
 
                 # Left
-                l = 0
-                for c in clue:
+                l = self.done_up_to[transpose]['left'][x]
+                for cn, c in enumerate(clue):
+                    if cn < self.clue_done_up_to[transpose]['left'][x]:
+                        continue
+
                     for l in range(l, M):
                         if self.get(x, l, transpose) != 0:
                             break
@@ -247,13 +259,20 @@ class Nonogram:
                         self.set(x, l + dy, 1, changed, transpose)
 
                     l += c
+
+                    self.done_up_to[transpose]['left'][x] = l+1
+                    self.clue_done_up_to[transpose]['left'][x] = cn+1
+
                     if l < M:
                         self.set(x, l, 0, changed, transpose)
 
 
                 # Right
-                r = M - 1
-                for c in reversed(clue):
+                r = self.done_up_to[transpose]['right'][x]
+                for cn, c in enumerate(reversed(clue)):
+                    if cn < self.clue_done_up_to[transpose]['right'][x]:
+                        continue
+
                     for r in range(r, -1, -1):
                         if self.get(x, r, transpose) != 0:
                             break
@@ -265,6 +284,10 @@ class Nonogram:
                         self.set(x, r - dy, 1, changed, transpose)
 
                     r -= c
+
+                    self.done_up_to[transpose]['right'][x] = r-1
+                    self.clue_done_up_to[transpose]['right'][x] = cn+1
+
                     if r >= 0:
                         self.set(x, r, 0, changed, transpose)
 
@@ -346,7 +369,7 @@ class Nonogram:
 
         self.print()
 
-        self.set(14, 4, 1, changed, False)
+        # self.set(14, 4, 1, changed, False)
 
         while len(changed) > 0 and self.todo > 0:
             changed = self.deduce(changed)
@@ -356,6 +379,7 @@ class Nonogram:
 
 
         print(self.done_up_to)
+        print(self.clue_done_up_to)
 
         if self.todo == 0:
             res = self.grid
