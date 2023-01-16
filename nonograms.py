@@ -55,6 +55,7 @@ class Nonogram:
         self.rowclues = clues[1]
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
+        self.changed = set()
 
         if not clone:
             self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
@@ -75,6 +76,8 @@ class Nonogram:
                 True: { 'left': [0 for _ in range(0, self.N)], 'right': [0 for _ in range(0, self.N)] }
             }
 
+    def reset_changed(self):
+        self.changed = set()
 
     def clone(self):
         n = Nonogram((self. colclues, self.rowclues), True)
@@ -136,7 +139,7 @@ class Nonogram:
             raise ValueError("Clue not matched")
 
 
-    def set(self, x, y, value, changed, transpose = False):
+    def set(self, x, y, value, transpose = False):
         if transpose:
             x, y = y, x
 
@@ -145,7 +148,7 @@ class Nonogram:
 
         if self.grid[x][y] == '?':
             self.grid[x][y] = value
-            changed.add((x, y))
+            self.changed.add((x, y))
 
             self.todo -= 1
 
@@ -164,13 +167,13 @@ class Nonogram:
                 if self.row_to_fill[x] == 0:
                     for yy in range(0, self.M):
                         if self.grid[x][yy] == '?':
-                            self.set(x, yy, 0, changed, False)
+                            self.set(x, yy, 0, False)
 
                 self.col_to_fill[y] -= 1
                 if self.col_to_fill[y] == 0:
                     for xx in range(0, self.N):
                         if self.grid[xx][y] == '?':
-                            self.set(xx, y, 0, changed, False)
+                            self.set(xx, y, 0, False)
 
             # if value == 0:
                 # self.row_to_empty[x] -= 1
@@ -193,8 +196,6 @@ class Nonogram:
 
 
     def deduce_initial(self):
-        changed = set()   # Should really keep track of lines and columns separately but easier to debug
-
         # Cannot slide much
         for clues, transpose, M in [(self.rowclues, False, self.M), (self.colclues, True, self.N)]:
             for x, clue in enumerate(clues):
@@ -203,15 +204,15 @@ class Nonogram:
                 if movable == 0:
                     y = 0
                     for _ in range(0, clue[0]):
-                        self.set(x, y, 1, changed, transpose)
+                        self.set(x, y, 1, transpose)
                         y += 1
 
                     for c in clue[1:]:
-                        self.set(x, y, 0, changed, transpose)
+                        self.set(x, y, 0, transpose)
                         y += 1
 
                         for _ in range(0, c):
-                            self.set(x, y, 1, changed, transpose)
+                            self.set(x, y, 1, transpose)
                             y += 1
 
                 else:
@@ -219,14 +220,13 @@ class Nonogram:
                         if c > movable:
                             before = sum(clue[0:i]) + len(clue[0:i])
                             for dy in range(0, c - movable):
-                                self.set(x, before + movable + dy, 1, changed, transpose)
-
-        return changed
+                                self.set(x, before + movable + dy, 1, transpose)
 
 
-    def deduce(self, changed):
-        rows, cols = get_rows_and_cols(changed)
-        changed = set()
+
+    def deduce(self):
+        rows, cols = get_rows_and_cols(self.changed)
+        self.reset_changed()
 
         # Check if row is already done
         # for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
@@ -236,13 +236,13 @@ class Nonogram:
                 # if sum([1 if self.get(x, y, transpose) == 1 else 0 for y in range(0, M)]) == sum(clue):
                     # for y in range(0, M):
                         # if self.get(x, y, transpose) == '?':
-                            # self.set(x, y, 0, changed, transpose)
+                            # self.set(x, y, 0, transpose)
 
                 # This one is actually useless ...
                 # if sum([1 if self.get(x, y, transpose) == 0 else 0 for y in range(0, M)]) == M - sum(clue):
                     # for y in range(0, M):
                         # if self.get(x, y, transpose) == '?':
-                            # self.set(x, y, 1, changed, transpose)
+                            # self.set(x, y, 1, transpose)
 
 
         # When one filled square is close to a border
@@ -266,7 +266,7 @@ class Nonogram:
                         break
 
                     for dy in range(1, c):
-                        self.set(x, l + dy, 1, changed, transpose)
+                        self.set(x, l + dy, 1, transpose)
 
                     l += c
 
@@ -274,7 +274,7 @@ class Nonogram:
                     self.clue_done_up_to[transpose]['left'][x] = cn+1
 
                     if l < M:
-                        self.set(x, l, 0, changed, transpose)
+                        self.set(x, l, 0, transpose)
 
 
                 # Right
@@ -291,7 +291,7 @@ class Nonogram:
                         break
 
                     for dy in range(1, c):
-                        self.set(x, r - dy, 1, changed, transpose)
+                        self.set(x, r - dy, 1, transpose)
 
                     r -= c
 
@@ -299,7 +299,7 @@ class Nonogram:
                     self.clue_done_up_to[transpose]['right'][x] = cn+1
 
                     if r >= 0:
-                        self.set(x, r, 0, changed, transpose)
+                        self.set(x, r, 0, transpose)
 
 
         # Check if first clue is constrained enough (by a wall or the grid)
@@ -328,13 +328,13 @@ class Nonogram:
 
                     # Filling the middle
                     for y in range(pos_l + movable, pos_r - movable + 1):
-                        self.set(x, y, 1, changed, transpose)
+                        self.set(x, y, 1, transpose)
 
                     # Clue close to the left
                     for y0 in range(0, c-1):
                         if self.get(x, y0, transpose) == 1:
                             for y in range(y0, c):
-                                self.set(x, y, 1, changed, transpose)
+                                self.set(x, y, 1, transpose)
 
 
                 # START FROM RIGHT
@@ -355,34 +355,32 @@ class Nonogram:
 
                     # Filling the middle
                     for y in range(pos_l + movable, pos_r - movable + 1):
-                        self.set(x, y, 1, changed, transpose)
+                        self.set(x, y, 1, transpose)
 
                     # From the right
                     for y0 in range(M-1, M-1 - (c-1), -1):
                         if self.get(x, y0, transpose) == 1:
                             for y in range(y0, M-1 - c, -1):
-                                self.set(x, y, 1, changed, transpose)
+                                self.set(x, y, 1, transpose)
 
 
 
         # TODO: Check if spacing gives us enough information to put some x
 
 
-        return changed
-
 
     def solve(self):
         self.print_clues()
         self.print()
 
-        changed = self.deduce_initial()
+        self.deduce_initial()
 
         self.print()
 
         # self.set(14, 4, 1, changed, False)
 
-        while len(changed) > 0 and self.todo > 0:
-            changed = self.deduce(changed)
+        while len(self.changed) > 0 and self.todo > 0:
+            self.deduce()
 
         print("========> AFTER DEDUCTIONS")
         self.print()
@@ -503,21 +501,22 @@ class Nonogram:
 
         for g in [0, 1]:
 
-            if sum([1 if i == 0 else 0 for i in self.grid[x]]) >= self.M - sum(self.rowclues[x]) and g == 0:
-                continue
+            # Useless now
 
-            if sum([1 if self.grid[xx][y] == 0 else 0 for xx in range(0, self.N)]) >= self.N - sum(self.colclues[y]) and g == 0:
-                continue
+            # if sum([1 if i == 0 else 0 for i in self.grid[x]]) >= self.M - sum(self.rowclues[x]) and g == 0:
+                # continue
+
+            # if sum([1 if self.grid[xx][y] == 0 else 0 for xx in range(0, self.N)]) >= self.N - sum(self.colclues[y]) and g == 0:
+                # continue
 
 
 
             n = self.clone()
-            changed = set()
 
             try:
-                n.set(x, y, g, changed, False)
-                while len(changed) > 0:
-                    changed = n.deduce(changed)
+                n.set(x, y, g, False)
+                while len(n.changed) > 0:
+                    n.deduce()
             except:
                 continue   # Wrong guess
 
