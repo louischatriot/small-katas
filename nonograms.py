@@ -62,6 +62,10 @@ class Nonogram:
             self.col_set = [0 for _ in range(0, self.M)]
             self.todo = self.M * self.N
 
+            self.row_to_fill = [sum(clue) for clue in self.rowclues]
+            self.col_to_fill = [sum(clue) for clue in self.colclues]
+            self.row_to_empty = [self.M - sum(clue) for clue in self.rowclues]
+
             self.done_up_to = {
                 False: { 'left': [0 for _ in range(0, self.M)], 'right': [self.M - 1 for _ in range(0, self.M)] },
                 True: { 'left': [0 for _ in range(0, self.N)], 'right': [self.N - 1 for _ in range(0, self.N)] }
@@ -87,6 +91,11 @@ class Nonogram:
             False: { 'left': [i for i in self.clue_done_up_to[False]['left']], 'right': [i for i in self.clue_done_up_to[False]['right']] },
             True: { 'left': [i for i in self.clue_done_up_to[True]['left']], 'right': [i for i in self.clue_done_up_to[True]['right']] }
         }
+
+        n.row_to_fill = [i for i in self.row_to_fill]
+        n.col_to_fill = [i for i in self.col_to_fill]
+        n.row_to_empty = [i for i in self.row_to_empty]
+
         return n
 
 
@@ -148,33 +157,28 @@ class Nonogram:
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
 
-            # if self.done_up_to[False]['left'][x] == y:
-                # for yy in range(y, self.M):
-                    # if self.grid[x][yy] != '?':
-                        # self.done_up_to[False]['left'][x] = yy + 1
-                    # else:
-                        # break
+            # TODO: check correctedness here
+            # TODO: only add columns to changed and check full line here only to remove the above code
+            if value == 1:
+                self.row_to_fill[x] -= 1
+                if self.row_to_fill[x] == 0:
+                    for yy in range(0, self.M):
+                        if self.grid[x][yy] == '?':
+                            self.set(x, yy, 0, changed, False)
 
-            # if self.done_up_to[False]['right'][x] == y:
-                # for yy in range(y, -1, -1):
-                    # if self.grid[x][yy] != '?':
-                        # self.done_up_to[False]['right'][x] = yy - 1
-                    # else:
-                        # break
+                self.col_to_fill[y] -= 1
+                if self.col_to_fill[y] == 0:
+                    for xx in range(0, self.N):
+                        if self.grid[xx][y] == '?':
+                            self.set(xx, y, 0, changed, False)
 
-            # if self.done_up_to[True]['left'][y] == x:
-                # for xx in range(x, self.N):
-                    # if self.grid[xx][y] != '?':
-                        # self.done_up_to[True]['left'][y] = xx + 1
-                    # else:
-                        # break
+            # if value == 0:
+                # self.row_to_empty[x] -= 1
 
-            # if self.done_up_to[True]['right'][y] == x:
-                # for xx in range(x, -1, -1):
-                    # if self.grid[xx][y] != '?':
-                        # self.done_up_to[True]['right'][y] = xx - 1
-                    # else:
-                        # break
+                # if self.row_to_empty[x] == 0:
+                    # for yy in range(0, self.M):
+                        # if self.grid[x][yy] == '?':
+                            # self.set(x, yy, 1, changed, False)
 
             return True
 
@@ -225,14 +229,20 @@ class Nonogram:
         changed = set()
 
         # Check if row is already done
-        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
-            for x in the_rows:
-                clue = clues[x]
+        # for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+            # for x in the_rows:
+                # clue = clues[x]
 
-                if sum([1 if self.get(x, y, transpose) == 1 else 0 for y in range(0, M)]) == sum(clue):
-                    for y in range(0, M):
-                        if self.get(x, y, transpose) == '?':
-                            self.set(x, y, 0, changed, transpose)
+                # if sum([1 if self.get(x, y, transpose) == 1 else 0 for y in range(0, M)]) == sum(clue):
+                    # for y in range(0, M):
+                        # if self.get(x, y, transpose) == '?':
+                            # self.set(x, y, 0, changed, transpose)
+
+                # This one is actually useless ...
+                # if sum([1 if self.get(x, y, transpose) == 0 else 0 for y in range(0, M)]) == M - sum(clue):
+                    # for y in range(0, M):
+                        # if self.get(x, y, transpose) == '?':
+                            # self.set(x, y, 1, changed, transpose)
 
 
         # When one filled square is close to a border
@@ -491,7 +501,16 @@ class Nonogram:
             # if done:
                 # break
 
-        for g in [1, 0]:
+        for g in [0, 1]:
+
+            if sum([1 if i == 0 else 0 for i in self.grid[x]]) >= self.M - sum(self.rowclues[x]) and g == 0:
+                continue
+
+            if sum([1 if self.grid[xx][y] == 0 else 0 for xx in range(0, self.N)]) >= self.N - sum(self.colclues[y]) and g == 0:
+                continue
+
+
+
             n = self.clone()
             changed = set()
 
