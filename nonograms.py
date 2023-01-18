@@ -705,13 +705,13 @@ def left_most(line, clues, boundaries):
     print(line)
     print(boundaries)
 
-    idx = 0
+    delta = 0
 
     for i, (c, (bl, bh)) in enumerate(zip(clues, boundaries)):
         print("===============")
         print(i, c, bl, bh)
 
-        idx = max(bl, idx)
+        idx = bl + delta
 
         while True:
             if all(line[i] == 1 or line[i] == 2 for i in range(idx, idx + c)) and (line[idx + c] == 1 or line[idx + c] == 2):
@@ -720,6 +720,7 @@ def left_most(line, clues, boundaries):
                 break
 
             idx += 1
+            delta += 1
             if idx > bh:
                 return None
 
