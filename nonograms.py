@@ -699,28 +699,31 @@ clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1,
 
 
 
-def left_most(line, clues, boundaries, idx):
+def left_most(line, clues, boundaries):
     res = []
 
+    print(line)
     print(boundaries)
 
-    il, ih = boundaries[idx]
-    c = clues[idx]
+    idx = 0
 
-    for i in range(il, ih+1):
-        if any(line[i] == 0 for i in range(i, i + c)):
-            continue
+    for i, (c, (bl, bh)) in enumerate(zip(clues, boundaries)):
+        print("===============")
+        print(i, c, bl, bh)
 
-        if i + c < len(line) - 1 and line[i + c] == 1:
-            continue
+        idx = max(bl, idx)
 
-        tail = left_most(line, clues, boundaries, idx+1)
-        if tail is not None:
-            res = [i] + tail
+        while True:
+            if all(line[i] == 1 or line[i] == 2 for i in range(idx, idx + c)) and (line[idx + c] == 1 or line[idx + c] == 2):
+                res.append(idx)
+                idx += 1
+                break
 
+            idx += 1
+            if idx > bh:
+                return None
 
-
-    return None
+    return res
 
 
 
@@ -731,7 +734,13 @@ clues = (1, 4, 4)
 
 left_boundaries = tuple((sum(clues[0:i]) + i, len(line) - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues)))
 
-left_most(line, clues, left_boundaries, 0)
 
+line[0] = 0
+
+
+res = left_most(line, clues, left_boundaries)
+
+
+print(res)
 
 
