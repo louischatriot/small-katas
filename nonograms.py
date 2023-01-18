@@ -58,7 +58,7 @@ class Nonogram:
         self.changed = set()
 
         if not clone:
-            self.grid = [['?' for _ in range(0, self.M)] for _ in range(0, self.N)]
+            self.grid = [[2 for _ in range(0, self.M)] for _ in range(0, self.N)]
             self.row_set = [0 for _ in range(0, self.N)]
             self.col_set = [0 for _ in range(0, self.M)]
             self.todo = self.M * self.N
@@ -66,6 +66,7 @@ class Nonogram:
             self.row_to_fill = [sum(clue) for clue in self.rowclues]
             self.col_to_fill = [sum(clue) for clue in self.colclues]
             self.row_to_empty = [self.M - sum(clue) for clue in self.rowclues]
+            self.col_to_empty = [self.N - sum(clue) for clue in self.colclues]
 
             self.done_up_to = {
                 False: { 'left': [0 for _ in range(0, self.M)], 'right': [self.M - 1 for _ in range(0, self.M)] },
@@ -98,6 +99,7 @@ class Nonogram:
         n.row_to_fill = [i for i in self.row_to_fill]
         n.col_to_fill = [i for i in self.col_to_fill]
         n.row_to_empty = [i for i in self.row_to_empty]
+        n.col_to_empty = [i for i in self.col_to_empty]
 
         return n
 
@@ -146,7 +148,7 @@ class Nonogram:
         if value == self.grid[x][y]:
             return True
 
-        if self.grid[x][y] == '?':
+        if self.grid[x][y] == 2:
             self.grid[x][y] = value
             self.changed.add((x, y))
 
@@ -166,22 +168,24 @@ class Nonogram:
                 self.row_to_fill[x] -= 1
                 if self.row_to_fill[x] == 0:
                     for yy in range(0, self.M):
-                        if self.grid[x][yy] == '?':
+                        if self.grid[x][yy] == 2:
                             self.set(x, yy, 0, False)
 
                 self.col_to_fill[y] -= 1
                 if self.col_to_fill[y] == 0:
                     for xx in range(0, self.N):
-                        if self.grid[xx][y] == '?':
+                        if self.grid[xx][y] == 2:
                             self.set(xx, y, 0, False)
 
-            # if value == 0:
-                # self.row_to_empty[x] -= 1
+            if value == 0:
+                self.row_to_empty[x] -= 1
 
                 # if self.row_to_empty[x] == 0:
                     # for yy in range(0, self.M):
                         # if self.grid[x][yy] == '?':
                             # self.set(x, yy, 1, changed, False)
+
+                self.col_to_empty[y] -= 1
 
             return True
 
@@ -400,6 +404,55 @@ class Nonogram:
 
     # Actually worse than before, let's check if it's because it's buggy or a bad idea
     def next_guess(self):
+        # current = self.M + self.N
+        # x0 = None
+        # y0 = None
+
+
+        # for x in range(0, self.N):
+            # score = self.row_to_empty[x]
+            # if score < current and score > 0:
+                # current = score
+                # x0 = x
+
+        # current = self.M + self.N
+
+        # for y in range(0, self.M):
+            # if self.grid[x0][y] == '?':
+                # score = self.col_to_empty[y]
+                # if score < current:
+                    # current = score
+                    # y0 = y
+
+        # return (x0, y0)
+
+        # for x in range(0, self.N):
+            # score = min(self.row_to_fill[x], self.row_to_empty[x])
+            # if score < current and score > 0:
+                # current = score
+                # x0 = x
+
+        # for y in range(0, self.M):
+            # score = min(self.col_to_fill[y], self.col_to_empty[y])
+            # if score < current and score > 0:
+                # current = score
+                # y0 = y
+
+        # if y0 is not None:
+            # if self.grid[x0][y0] == '?':
+                # return (x0, y0)
+            # else:
+                # for x in range(0, self.N):
+                    # if self.grid[x][y0] == '?':
+                        # return (x, y0)
+        # else:
+            # for y in range(0, self.M):
+                # if self.grid[x0][y] == '?':
+                    # return (x0, y)
+
+
+
+
         for xu in range(0, self.N):
             if self.row_set[xu] < self.M:
                 break
@@ -421,33 +474,24 @@ class Nonogram:
         y0 = yu if self.col_set[yu] > self.col_set[yb] else yb
 
         if self.row_set[x0] > self.col_set[y0]:
+            # for y in range(0, self.M):
+                # current = self.N + self.M
+                # if self.col_set[y] < current and self.grid[x0][y] == '?':
+                    # current = self.col_set[y]
+                    # yy = y
+
+            # return (x0, yy)
+
+
             for y in range(0, self.M):
-                if self.grid[x0][y] == '?':
+                if self.grid[x0][y] == 2:
                     return (x0, y)
-
-                # if y % 2 == 0:
-                    # y0 = y // 2
-                # else:
-                    # y0 = self.M - y // 2 - 1
-
-                # if self.grid[x0][y0] == '?':
-                    # return (x0, y0)
-
-
-
 
         else:
             for x in range(0, self.N):
-                if self.grid[x][y0] == '?':
+                if self.grid[x][y0] == 2:
                     return (x, y0)
 
-                # if x % 2 == 0:
-                    # x0 = x // 2
-                # else:
-                    # x0 = self.N - x // 2 - 1
-
-                # if self.grid[x0][y0] == '?':
-                    # return (x0, y0)
 
 
 
@@ -461,25 +505,25 @@ class Nonogram:
         # Also, assuming a square shape for now
         for round in range(0, self.N // 2):
             for y in range(round, self.N - round):
-                if self.grid[round][y] == '?':
+                if self.grid[round][y] == 2:
                     return (round, y)
 
             for x in range(round + 1, self.N - round):
-                if self.grid[x][round] == '?':
+                if self.grid[x][round] == 2:
                     return (x, round)
 
             for y in range(self.N - 1 - round, round - 1, -1):
-                if self.grid[round][y] == '?':
+                if self.grid[round][y] == 2:
                     return (round, y)
 
             for x in range(self.N - 2 - round, round, -1):
-                if self.grid[x][round] == '?':
+                if self.grid[x][round] == 2:
                     return (x, round)
 
         # Base case
         for x in range(0, self.N):
             for y in range(0, self.M):
-                if self.grid[x][y] == '?':
+                if self.grid[x][y] == 2:
                     return (x, y)
 
 
@@ -607,26 +651,34 @@ clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1,
 
 
 
-start = time()
-
-n = Nonogram(clues)
-
-res = n.solve()
-
-print(n.row_set)
-print(n.col_set)
-
-print("===================== RESULT")
-print(res)
 
 
-if res == ans:
-    print("FUCK YEAH")
-else:
-    print("OH NOES")
 
 
-print("==> Duration:", time() - start)
+
+
+
+
+# start = time()
+
+# n = Nonogram(clues)
+
+# res = n.solve()
+
+# print(n.row_set)
+# print(n.col_set)
+
+# print("===================== RESULT")
+# print(res)
+
+
+# if res == ans:
+    # print("FUCK YEAH")
+# else:
+    # print("OH NOES")
+
+
+# print("==> Duration:", time() - start)
 
 
 # print(n.rowclues)
@@ -636,21 +688,50 @@ print("==> Duration:", time() - start)
 # print(n.col_set)
 
 
-# GGG = n.clone()
 
 # print("==========================================")
 # print("==========================================")
 
 
-# print(GGG.rowclues)
-# print(GGG.colclues)
-# GGG.print()
-# print(GGG.row_set)
-# print(GGG.col_set)
 
 
 
 
+
+
+def left_most(line, clues, boundaries, idx):
+    res = []
+
+    print(boundaries)
+
+    il, ih = boundaries[idx]
+    c = clues[idx]
+
+    for i in range(il, ih+1):
+        if any(line[i] == 0 for i in range(i, i + c)):
+            continue
+
+        if i + c < len(line) - 1 and line[i + c] == 1:
+            continue
+
+        tail = left_most(line, clues, boundaries, idx+1)
+        if tail is not None:
+            res = [i] + tail
+
+
+
+    return None
+
+
+
+
+
+line = [2 for i in range(0, 15)]
+clues = (1, 4, 4)
+
+left_boundaries = tuple((sum(clues[0:i]) + i, len(line) - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues)))
+
+left_most(line, clues, left_boundaries, 0)
 
 
 
