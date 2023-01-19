@@ -752,8 +752,13 @@ print(clues)
 
 start = time()
 
+
+r = range(0, 100)
+
 for _ in range(0, 10000):
-    res = left_most(line, clues, left_boundaries, 0, 0)
+    for _ in r:
+        pass
+    # res = left_most(line, clues, left_boundaries, 0, 0)
 
 print(res)
 
