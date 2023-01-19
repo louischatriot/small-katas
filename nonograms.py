@@ -179,12 +179,6 @@ class Nonogram:
 
             if value == 0:
                 self.row_to_empty[x] -= 1
-
-                # if self.row_to_empty[x] == 0:
-                    # for yy in range(0, self.M):
-                        # if self.grid[x][yy] == '?':
-                            # self.set(x, yy, 1, changed, False)
-
                 self.col_to_empty[y] -= 1
 
             return True
@@ -659,26 +653,29 @@ clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1,
 
 
 
-# start = time()
+start = time()
 
-# n = Nonogram(clues)
+n = Nonogram(clues)
 
-# res = n.solve()
+res = n.solve()
 
-# print(n.row_set)
-# print(n.col_set)
+print(n.row_set)
+print(n.col_set)
 
-# print("===================== RESULT")
-# print(res)
-
-
-# if res == ans:
-    # print("FUCK YEAH")
-# else:
-    # print("OH NOES")
+print("===================== RESULT")
+print(res)
 
 
-# print("==> Duration:", time() - start)
+if res == ans:
+    print("FUCK YEAH")
+else:
+    print("OH NOES")
+
+
+print("==> Duration:", time() - start)
+
+
+1/0
 
 
 # print(n.rowclues)
@@ -753,12 +750,9 @@ print(clues)
 start = time()
 
 
-r = range(0, 100)
 
 for _ in range(0, 10000):
-    for _ in r:
-        pass
-    # res = left_most(line, clues, left_boundaries, 0, 0)
+    res = left_most(line, clues, left_boundaries, 0, 0)
 
 print(res)
 
