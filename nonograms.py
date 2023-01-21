@@ -714,7 +714,6 @@ def left_most(line, clues, boundaries, i_start, idx):
                         return [i0] + tail
 
         if line[i0] == 1:
-            # A 1 is going to be before this clue, and hence there is no match
             break
         else:
             i0 += 1
@@ -753,42 +752,48 @@ def right_most(line, clues, boundaries, i_start, idx):
 
 
 line = [2 for i in range(0, 15)]
-clues = (4, 2, 2)
+clues = (4, 5, 2)
 
 boundaries = tuple((sum(clues[0:i]) + i, len(line) - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues)))
 print(boundaries)
 
 
-line[0] = 0
-line[1] = 1
-line[2] = 0
-line[3] = 1
+line[14] = 1
+line[11] = 1
+# line[2] = 0
+# line[3] = 1
 # line[6] = 0
 # line[7] = 1
-line[8] = 1
-# line[13] = 1
+# line[8] = 1
+# line[10] = 1
 
 
 print(line)
 print(clues)
 
 
-start = time()
+left = left_most(line, clues, boundaries, 0, 0)
+right = right_most(line, clues, boundaries, len(line) - 1, len(clues) - 1)
 
+print(left)
+print(right)
 
+for l, r, c in zip(left, right, clues):
+    for i in range(max(l, r), min(l, r) + c):
+        line[i] = 1
 
-for _ in range(0, 10000):
-    res = left_most(line, clues, boundaries, 0, 0)
+for i in range(0, left[0]):
+    line[i] = 0
 
-print(res)
+for i in range(right[-1] + clues[-1], len(line)):
+    line[i] = 0
 
-print(time() - start)
+for idx in range(1, len(clues)):
+    for i in range(right[idx - 1] + clues[idx - 1], left[idx]):
+        line[i] = 0
 
+print(line)
 
-
-res = right_most(line, clues, boundaries, len(line) - 1, len(clues) - 1)
-
-print(res)
 
 
 
