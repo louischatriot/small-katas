@@ -653,29 +653,29 @@ clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1,
 
 
 
-start = time()
+# start = time()
 
-n = Nonogram(clues)
+# n = Nonogram(clues)
 
-res = n.solve()
+# res = n.solve()
 
-print(n.row_set)
-print(n.col_set)
+# print(n.row_set)
+# print(n.col_set)
 
-print("===================== RESULT")
-print(res)
-
-
-if res == ans:
-    print("FUCK YEAH")
-else:
-    print("OH NOES")
+# print("===================== RESULT")
+# print(res)
 
 
-print("==> Duration:", time() - start)
+# if res == ans:
+    # print("FUCK YEAH")
+# else:
+    # print("OH NOES")
 
 
-1/0
+# print("==> Duration:", time() - start)
+
+
+# 1/0
 
 
 # print(n.rowclues)
@@ -722,6 +722,32 @@ def left_most(line, clues, boundaries, i_start, idx):
     return None
 
 
+def right_most(line, clues, boundaries, i_start, idx):
+    c = clues[idx]
+    bl, bh = boundaries[idx]
+
+    i0 = min(bh, i_start)
+    while i0 >= bl:
+        if all(line[i] in [1, 2] for i in range(i0, i0 + c)):
+            if idx == 0:
+                if all(line[i] in [0, 2] for i in range(0, i0)):
+                    return [i0]
+
+            else:
+                if line[i0 - 1] in [0, 2]:
+                    tail = right_most(line, clues, boundaries, i0 - clues[idx-1] - 1, idx - 1)
+                    if tail:
+                        return tail + [i0]
+
+        if line[i0 + c - 1] == 1:
+            break
+        else:
+            i0 -= 1
+
+    return None
+
+
+
 
 
 
@@ -729,19 +755,19 @@ def left_most(line, clues, boundaries, i_start, idx):
 line = [2 for i in range(0, 15)]
 clues = (4, 2, 2)
 
-left_boundaries = tuple((sum(clues[0:i]) + i, len(line) - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues)))
+boundaries = tuple((sum(clues[0:i]) + i, len(line) - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues)))
+print(boundaries)
 
 
 line[0] = 0
 line[1] = 1
-# line[2] = 0
-line[4] = 1
-line[6] = 0
+line[2] = 0
+line[3] = 1
+# line[6] = 0
 # line[7] = 1
-# line[8] = 0
+line[8] = 1
+# line[13] = 1
 
-line[11] = 1
-line[14] = 1
 
 print(line)
 print(clues)
@@ -752,9 +778,19 @@ start = time()
 
 
 for _ in range(0, 10000):
-    res = left_most(line, clues, left_boundaries, 0, 0)
+    res = left_most(line, clues, boundaries, 0, 0)
 
 print(res)
 
 print(time() - start)
+
+
+
+res = right_most(line, clues, boundaries, len(line) - 1, len(clues) - 1)
+
+print(res)
+
+
+
+
 
