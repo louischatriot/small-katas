@@ -55,6 +55,8 @@ class Nonogram:
         self.rowclues = clues[1]
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
+
+
         self.changed = set()
 
         if not clone:
@@ -67,6 +69,9 @@ class Nonogram:
             self.col_to_fill = [sum(clue) for clue in self.colclues]
             self.row_to_empty = [self.M - sum(clue) for clue in self.rowclues]
             self.col_to_empty = [self.N - sum(clue) for clue in self.colclues]
+
+            self.rowboundaries = [tuple((sum(clues[0:i]) + i, self.M - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.rowclues]
+            self.colboundaries = [tuple((sum(clues[0:i]) + i, self.N - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.colclues]
 
             self.done_up_to = {
                 False: { 'left': [0 for _ in range(0, self.M)], 'right': [self.M - 1 for _ in range(0, self.M)] },
@@ -100,6 +105,9 @@ class Nonogram:
         n.col_to_fill = [i for i in self.col_to_fill]
         n.row_to_empty = [i for i in self.row_to_empty]
         n.col_to_empty = [i for i in self.col_to_empty]
+
+        n.rowboundaries = [i for i in self.rowboundaries]
+        n.colboundaries = [i for i in self.colboundaries]
 
         return n
 
@@ -222,9 +230,73 @@ class Nonogram:
 
 
 
+
+
+    def left_most(self, x, M, clues, boundaries, transpose, i_start, idx):
+        c = clues[idx]
+        bl, bh = boundaries[idx]
+
+        i0 = max(bl, i_start)
+        while i0 <= bh:
+            if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
+                if idx == len(clues) - 1:
+                    if all(self.get(x, i, transpose) in [0, 2] for i in range(i0 + c, M)):
+                        return [i0]
+
+                else:
+                    if self.get(x, i0 + c, transpose) in [0, 2]:
+                        tail = self.left_most(x, M, clues, boundaries, transpose, i0 + c + 1, idx + 1)
+                        if tail:
+                            return [i0] + tail
+
+            if self.get(x, i0, transpose) == 1:
+                break
+            else:
+                i0 += 1
+
+        return None
+
+
+    def right_most(self, x, M, clues, boundaries, transpose, i_start, idx):
+        c = clues[idx]
+        bl, bh = boundaries[idx]
+
+        i0 = min(bh, i_start)
+        while i0 >= bl:
+            if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
+                if idx == 0:
+                    if all(self.get(x, i, transpose) in [0, 2] for i in range(0, i0)):
+                        return [i0]
+
+                else:
+                    if self.get(x, i0 - 1, transpose) in [0, 2]:
+                        tail = self.right_most(x, M, clues, boundaries, transpose, i0 - clues[idx-1] - 1, idx - 1)
+                        if tail:
+                            return tail + [i0]
+
+            if self.get(x, i0 + c - 1, transpose) == 1:
+                break
+            else:
+                i0 -= 1
+
+        return None
+
+
+
+
+
     def deduce(self):
         rows, cols = get_rows_and_cols(self.changed)
         self.reset_changed()
+
+
+
+
+
+
+
+
+
 
         # Check if row is already done
         # for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
@@ -245,125 +317,149 @@ class Nonogram:
 
         # When one filled square is close to a border
         # Only case handled for now = glued to a border
-        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+        for clues, boundaries, transpose, the_rows, M in [(self.rowclues, self.rowboundaries, False, rows, self.M), (self.colclues, self.colboundaries, True, cols, self.N)]:
             for x in the_rows:
                 clue = clues[x]
-
-                # Left
-                l = self.done_up_to[transpose]['left'][x]
-                for cn, c in enumerate(clue):
-                    if cn < self.clue_done_up_to[transpose]['left'][x]:
-                        continue
-
-                    for l in range(l, M):
-                        if self.get(x, l, transpose) != 0:
-                            break
-
-                    # Could keep track of done clues to avoid re setting the same cell over and over again ...
-                    if self.get(x, l, transpose) != 1:
-                        break
-
-                    for dy in range(1, c):
-                        self.set(x, l + dy, 1, transpose)
-
-                    l += c
-
-                    self.done_up_to[transpose]['left'][x] = l+1
-                    self.clue_done_up_to[transpose]['left'][x] = cn+1
-
-                    if l < M:
-                        self.set(x, l, 0, transpose)
+                boundary = boundaries[x]
 
 
-                # Right
-                r = self.done_up_to[transpose]['right'][x]
-                for cn, c in enumerate(reversed(clue)):
-                    if cn < self.clue_done_up_to[transpose]['right'][x]:
-                        continue
+                left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
+                right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
 
-                    for r in range(r, -1, -1):
-                        if self.get(x, r, transpose) != 0:
-                            break
 
-                    if self.get(x, r, transpose) != 1:
-                        break
+                for l, r, c in zip(left, right, clue):
+                    for i in range(max(l, r), min(l, r) + c):
+                        self.set(x, i, 1, transpose)
+                        # line[i] = 1
 
-                    for dy in range(1, c):
-                        self.set(x, r - dy, 1, transpose)
+                for i in range(0, left[0]):
+                    self.set(x, i, 0, transpose)
+                    # line[i] = 0
 
-                    r -= c
+                for i in range(right[-1] + clue[-1], M):
+                    self.set(x, i, 0, transpose)
+                    # line[i] = 0
 
-                    self.done_up_to[transpose]['right'][x] = r-1
-                    self.clue_done_up_to[transpose]['right'][x] = cn+1
+                for idx in range(1, len(clue)):
+                    for i in range(right[idx - 1] + clue[idx - 1], left[idx]):
+                        self.set(x, i, 0, transpose)
+                        # line[i] = 0
 
-                    if r >= 0:
-                        self.set(x, r, 0, transpose)
+
+                # # Left
+                # l = self.done_up_to[transpose]['left'][x]
+                # for cn, c in enumerate(clue):
+                    # if cn < self.clue_done_up_to[transpose]['left'][x]:
+                        # continue
+
+                    # for l in range(l, M):
+                        # if self.get(x, l, transpose) != 0:
+                            # break
+
+                    # # Could keep track of done clues to avoid re setting the same cell over and over again ...
+                    # if self.get(x, l, transpose) != 1:
+                        # break
+
+                    # for dy in range(1, c):
+                        # self.set(x, l + dy, 1, transpose)
+
+                    # l += c
+
+                    # self.done_up_to[transpose]['left'][x] = l+1
+                    # self.clue_done_up_to[transpose]['left'][x] = cn+1
+
+                    # if l < M:
+                        # self.set(x, l, 0, transpose)
+
+
+                # # Right
+                # r = self.done_up_to[transpose]['right'][x]
+                # for cn, c in enumerate(reversed(clue)):
+                    # if cn < self.clue_done_up_to[transpose]['right'][x]:
+                        # continue
+
+                    # for r in range(r, -1, -1):
+                        # if self.get(x, r, transpose) != 0:
+                            # break
+
+                    # if self.get(x, r, transpose) != 1:
+                        # break
+
+                    # for dy in range(1, c):
+                        # self.set(x, r - dy, 1, transpose)
+
+                    # r -= c
+
+                    # self.done_up_to[transpose]['right'][x] = r-1
+                    # self.clue_done_up_to[transpose]['right'][x] = cn+1
+
+                    # if r >= 0:
+                        # self.set(x, r, 0, transpose)
 
 
         # Check if first clue is constrained enough (by a wall or the grid)
-        for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
-            for x in the_rows:
-                clue = clues[x]
+        # for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
+            # for x in the_rows:
+                # clue = clues[x]
 
-                # START FROM LEFT
-                for pos_l in range(0, M):
-                    if self.get(x, pos_l, transpose) != 0:
-                        break
+                # # START FROM LEFT
+                # for pos_l in range(0, M):
+                    # if self.get(x, pos_l, transpose) != 0:
+                        # break
 
-                # Last non wall space in contiguous box
-                # Works as long as there is at least one clue / line is not full of x
-                for pos_r in range(pos_l, M):
-                    if self.get(x, pos_r, transpose) == 0:
-                        break
+                # # Last non wall space in contiguous box
+                # # Works as long as there is at least one clue / line is not full of x
+                # for pos_r in range(pos_l, M):
+                    # if self.get(x, pos_r, transpose) == 0:
+                        # break
 
-                if pos_r < M-1:
-                    pos_r -= 1
+                # if pos_r < M-1:
+                    # pos_r -= 1
 
-                # TODO: check if mistake here, and should only use if the filled square is central enough
-                if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
-                    c = clue[0]
-                    movable = pos_r + 1 - pos_l - c
+                # # TODO: check if mistake here, and should only use if the filled square is central enough
+                # if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
+                    # c = clue[0]
+                    # movable = pos_r + 1 - pos_l - c
 
-                    # Filling the middle
-                    for y in range(pos_l + movable, pos_r - movable + 1):
-                        self.set(x, y, 1, transpose)
+                    # # Filling the middle
+                    # for y in range(pos_l + movable, pos_r - movable + 1):
+                        # self.set(x, y, 1, transpose)
 
-                    # Clue close to the left
-                    for y0 in range(0, c-1):
-                        if self.get(x, y0, transpose) == 1:
-                            for y in range(y0, c):
-                                self.set(x, y, 1, transpose)
-
-
-                # START FROM RIGHT
-                for pos_r in range(M-1, -1, -1):
-                    if self.get(x, pos_r, transpose) != 0:
-                        break
-
-                for pos_l in range(pos_r, -1, -1):
-                    if self.get(x, pos_l, transpose) == 0:
-                        break
-
-                if pos_l > 0:
-                    pos_l += 1
-
-                if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
-                    c = clue[-1]
-                    movable = pos_r + 1 - pos_l - c
-
-                    # Filling the middle
-                    for y in range(pos_l + movable, pos_r - movable + 1):
-                        self.set(x, y, 1, transpose)
-
-                    # From the right
-                    for y0 in range(M-1, M-1 - (c-1), -1):
-                        if self.get(x, y0, transpose) == 1:
-                            for y in range(y0, M-1 - c, -1):
-                                self.set(x, y, 1, transpose)
+                    # # Clue close to the left
+                    # for y0 in range(0, c-1):
+                        # if self.get(x, y0, transpose) == 1:
+                            # for y in range(y0, c):
+                                # self.set(x, y, 1, transpose)
 
 
+                # # START FROM RIGHT
+                # for pos_r in range(M-1, -1, -1):
+                    # if self.get(x, pos_r, transpose) != 0:
+                        # break
 
-        # TODO: Check if spacing gives us enough information to put some x
+                # for pos_l in range(pos_r, -1, -1):
+                    # if self.get(x, pos_l, transpose) == 0:
+                        # break
+
+                # if pos_l > 0:
+                    # pos_l += 1
+
+                # if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
+                    # c = clue[-1]
+                    # movable = pos_r + 1 - pos_l - c
+
+                    # # Filling the middle
+                    # for y in range(pos_l + movable, pos_r - movable + 1):
+                        # self.set(x, y, 1, transpose)
+
+                    # # From the right
+                    # for y0 in range(M-1, M-1 - (c-1), -1):
+                        # if self.get(x, y0, transpose) == 1:
+                            # for y in range(y0, M-1 - c, -1):
+                                # self.set(x, y, 1, transpose)
+
+
+
 
 
 
@@ -653,29 +749,29 @@ clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1,
 
 
 
-# start = time()
+start = time()
 
-# n = Nonogram(clues)
+n = Nonogram(clues)
 
-# res = n.solve()
+res = n.solve()
 
-# print(n.row_set)
-# print(n.col_set)
+print(n.row_set)
+print(n.col_set)
 
-# print("===================== RESULT")
-# print(res)
-
-
-# if res == ans:
-    # print("FUCK YEAH")
-# else:
-    # print("OH NOES")
+print("===================== RESULT")
+print(res)
 
 
-# print("==> Duration:", time() - start)
+if res == ans:
+    print("FUCK YEAH")
+else:
+    print("OH NOES")
 
 
-# 1/0
+print("==> Duration:", time() - start)
+
+
+1/0
 
 
 # print(n.rowclues)
@@ -793,6 +889,9 @@ for idx in range(1, len(clues)):
         line[i] = 0
 
 print(line)
+
+
+
 
 
 
