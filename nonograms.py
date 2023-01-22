@@ -1,5 +1,4 @@
 from time import time
-import numpy as np
 
 
 
@@ -232,20 +231,20 @@ class Nonogram:
 
 
 
-    def left_most(self, x, M, clues, boundaries, transpose, i_start, idx):
-        c = clues[idx]
-        bl, bh = boundaries[idx]
+    def left_most(self, x, M, clue, boundary, transpose, i_start, idx):
+        c = clue[idx]
+        bl, bh = boundary[idx]
 
         i0 = max(bl, i_start)
         while i0 <= bh:
             if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
-                if idx == len(clues) - 1:
+                if idx == len(clue) - 1:
                     if all(self.get(x, i, transpose) in [0, 2] for i in range(i0 + c, M)):
                         return [i0]
 
                 else:
                     if self.get(x, i0 + c, transpose) in [0, 2]:
-                        tail = self.left_most(x, M, clues, boundaries, transpose, i0 + c + 1, idx + 1)
+                        tail = self.left_most(x, M, clue, boundary, transpose, i0 + c + 1, idx + 1)
                         if tail:
                             return [i0] + tail
 
@@ -257,9 +256,9 @@ class Nonogram:
         return None
 
 
-    def right_most(self, x, M, clues, boundaries, transpose, i_start, idx):
-        c = clues[idx]
-        bl, bh = boundaries[idx]
+    def right_most(self, x, M, clue, boundary, transpose, i_start, idx):
+        c = clue[idx]
+        bl, bh = boundary[idx]
 
         i0 = min(bh, i_start)
         while i0 >= bl:
@@ -270,7 +269,7 @@ class Nonogram:
 
                 else:
                     if self.get(x, i0 - 1, transpose) in [0, 2]:
-                        tail = self.right_most(x, M, clues, boundaries, transpose, i0 - clues[idx-1] - 1, idx - 1)
+                        tail = self.right_most(x, M, clue, boundary, transpose, i0 - clue[idx-1] - 1, idx - 1)
                         if tail:
                             return tail + [i0]
 
@@ -324,6 +323,15 @@ class Nonogram:
 
 
                 left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
+
+
+                if left is None:
+                    raise ValueError("Wrong guess earlier")
+
+
+
+
+
                 right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
 
 
@@ -464,24 +472,24 @@ class Nonogram:
 
 
     def solve(self):
-        self.print_clues()
-        self.print()
+        # self.print_clues()
+        # self.print()
 
         self.deduce_initial()
 
-        self.print()
+        # self.print()
 
         # self.set(14, 4, 1, changed, False)
 
         while len(self.changed) > 0 and self.todo > 0:
             self.deduce()
 
-        print("========> AFTER DEDUCTIONS")
-        self.print()
+        # print("========> AFTER DEDUCTIONS")
+        # self.print()
 
 
-        print(self.done_up_to)
-        print(self.clue_done_up_to)
+        # print(self.done_up_to)
+        # print(self.clue_done_up_to)
 
         if self.todo == 0:
             res = self.grid
@@ -655,7 +663,7 @@ class Nonogram:
                 continue   # Wrong guess
 
             if n.todo == 0:
-                n.print()
+                # n.print()
                 return n.grid
 
             res = n.guess(t+1)
@@ -741,6 +749,7 @@ clues = (((1, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1), (2, 3, 2, 1), (1, 4, 1, 3), (1,
 
 
 
+# clues = (((), (4, 1), (11,), (2, 4), (2, 5), (9,), (10,), (10,), (11,), (12,), (10,), (3, 3), (8,), (5,), (1,)), ((1,), (3,), (6,), (10,), (11,), (1, 8), (1, 7, 1), (9, 1), (13,), (13,), (13,), (2, 4, 2), (1, 2), (2,), ()))
 
 
 
@@ -760,6 +769,7 @@ print(n.col_set)
 
 print("===================== RESULT")
 print(res)
+n.print()
 
 
 if res == ans:
