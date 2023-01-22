@@ -29,11 +29,6 @@ class Nonogram:
             self.col_set = [0 for _ in range(0, self.M)]
             self.todo = self.M * self.N
 
-            self.row_to_fill = [sum(clue) for clue in self.rowclues]
-            self.col_to_fill = [sum(clue) for clue in self.colclues]
-            self.row_to_empty = [self.M - sum(clue) for clue in self.rowclues]
-            self.col_to_empty = [self.N - sum(clue) for clue in self.colclues]
-
             self.rowboundaries = [tuple((sum(clues[0:i]) + i, self.M - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.rowclues]
             self.colboundaries = [tuple((sum(clues[0:i]) + i, self.N - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.colclues]
 
@@ -64,11 +59,6 @@ class Nonogram:
             False: { 'left': [i for i in self.clue_done_up_to[False]['left']], 'right': [i for i in self.clue_done_up_to[False]['right']] },
             True: { 'left': [i for i in self.clue_done_up_to[True]['left']], 'right': [i for i in self.clue_done_up_to[True]['right']] }
         }
-
-        n.row_to_fill = [i for i in self.row_to_fill]
-        n.col_to_fill = [i for i in self.col_to_fill]
-        n.row_to_empty = [i for i in self.row_to_empty]
-        n.col_to_empty = [i for i in self.col_to_empty]
 
         n.rowboundaries = [i for i in self.rowboundaries]
         n.colboundaries = [i for i in self.colboundaries]
@@ -133,25 +123,6 @@ class Nonogram:
             self.col_set[y] += 1
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
-
-            # TODO: check correctedness here
-            # TODO: only add columns to changed and check full line here only to remove the above code
-            if value == 1:
-                self.row_to_fill[x] -= 1
-                if self.row_to_fill[x] == 0:
-                    for yy in range(0, self.M):
-                        if self.grid[x][yy] == 2:
-                            self.set(x, yy, 0, False)
-
-                self.col_to_fill[y] -= 1
-                if self.col_to_fill[y] == 0:
-                    for xx in range(0, self.N):
-                        if self.grid[xx][y] == 2:
-                            self.set(xx, y, 0, False)
-
-            if value == 0:
-                self.row_to_empty[x] -= 1
-                self.col_to_empty[y] -= 1
 
             return True
 
@@ -329,10 +300,18 @@ class Nonogram:
                     return (x, y0)
 
 
-
-
     def guess(self, t=0):
-        x, y = self.next_guess()
+        done = False
+        for x in range(0, self.N):
+            for y in range(0, self.M):
+                if self.grid[x][y] == 2:
+                    done = True
+                if done:
+                    break
+            if done:
+                break
+
+        # x, y = self.next_guess()
 
         for g in [0, 1]:
             n = self.clone()
