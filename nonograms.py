@@ -2,41 +2,6 @@ from time import time
 
 
 
-
-
-def possibilities(clues, N):
-    res = []
-
-    if len(clues) == 0:
-        return []
-
-    if len(clues) == 1:
-        c = clues[0]
-        if c > N:
-            return []
-        for i in range(0, N-c+1):
-            res.append([0] * i + [1] * c + [0] * (N-c-i))
-        return res
-
-    R = N - sum(clues[1:]) - (len(clues) - 2)
-    c = clues[0]
-    for r in range(c+1, R):
-        heads = possibilities((c,), r)
-
-        # print(heads)
-        # print("============================")
-
-        for h in heads:
-            # print("YO")
-            # print(N-r-1)
-            for t in possibilities(clues[1:], N - r - 1):
-                # print("EEE")
-                res.append(h + [0] + t)
-
-    return res
-
-
-
 def get_rows_and_cols(changed):
     rows = set()
     cols = set()
@@ -281,41 +246,10 @@ class Nonogram:
         return None
 
 
-
-
-
     def deduce(self):
         rows, cols = get_rows_and_cols(self.changed)
         self.reset_changed()
 
-
-
-
-
-
-
-
-
-
-        # Check if row is already done
-        # for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
-            # for x in the_rows:
-                # clue = clues[x]
-
-                # if sum([1 if self.get(x, y, transpose) == 1 else 0 for y in range(0, M)]) == sum(clue):
-                    # for y in range(0, M):
-                        # if self.get(x, y, transpose) == '?':
-                            # self.set(x, y, 0, transpose)
-
-                # This one is actually useless ...
-                # if sum([1 if self.get(x, y, transpose) == 0 else 0 for y in range(0, M)]) == M - sum(clue):
-                    # for y in range(0, M):
-                        # if self.get(x, y, transpose) == '?':
-                            # self.set(x, y, 1, transpose)
-
-
-        # When one filled square is close to a border
-        # Only case handled for now = glued to a border
         for clues, boundaries, transpose, the_rows, M in [(self.rowclues, self.rowboundaries, False, rows, self.M), (self.colclues, self.colboundaries, True, cols, self.N)]:
             for x in the_rows:
                 clue = clues[x]
@@ -324,175 +258,34 @@ class Nonogram:
                 if len(clue) == 0:
                     continue   # Nothing to learn
 
-
                 left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
-
 
                 if left is None:
                     raise ValueError("Wrong guess earlier")
 
-
-
-
-
                 right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
-
 
                 for l, r, c in zip(left, right, clue):
                     for i in range(max(l, r), min(l, r) + c):
                         self.set(x, i, 1, transpose)
-                        # line[i] = 1
 
                 for i in range(0, left[0]):
                     self.set(x, i, 0, transpose)
-                    # line[i] = 0
 
                 for i in range(right[-1] + clue[-1], M):
                     self.set(x, i, 0, transpose)
-                    # line[i] = 0
 
                 for idx in range(1, len(clue)):
                     for i in range(right[idx - 1] + clue[idx - 1], left[idx]):
                         self.set(x, i, 0, transpose)
-                        # line[i] = 0
-
-
-                # # Left
-                # l = self.done_up_to[transpose]['left'][x]
-                # for cn, c in enumerate(clue):
-                    # if cn < self.clue_done_up_to[transpose]['left'][x]:
-                        # continue
-
-                    # for l in range(l, M):
-                        # if self.get(x, l, transpose) != 0:
-                            # break
-
-                    # # Could keep track of done clues to avoid re setting the same cell over and over again ...
-                    # if self.get(x, l, transpose) != 1:
-                        # break
-
-                    # for dy in range(1, c):
-                        # self.set(x, l + dy, 1, transpose)
-
-                    # l += c
-
-                    # self.done_up_to[transpose]['left'][x] = l+1
-                    # self.clue_done_up_to[transpose]['left'][x] = cn+1
-
-                    # if l < M:
-                        # self.set(x, l, 0, transpose)
-
-
-                # # Right
-                # r = self.done_up_to[transpose]['right'][x]
-                # for cn, c in enumerate(reversed(clue)):
-                    # if cn < self.clue_done_up_to[transpose]['right'][x]:
-                        # continue
-
-                    # for r in range(r, -1, -1):
-                        # if self.get(x, r, transpose) != 0:
-                            # break
-
-                    # if self.get(x, r, transpose) != 1:
-                        # break
-
-                    # for dy in range(1, c):
-                        # self.set(x, r - dy, 1, transpose)
-
-                    # r -= c
-
-                    # self.done_up_to[transpose]['right'][x] = r-1
-                    # self.clue_done_up_to[transpose]['right'][x] = cn+1
-
-                    # if r >= 0:
-                        # self.set(x, r, 0, transpose)
-
-
-        # Check if first clue is constrained enough (by a wall or the grid)
-        # for clues, transpose, the_rows, M in [(self.rowclues, False, rows, self.M), (self.colclues, True, cols, self.N)]:
-            # for x in the_rows:
-                # clue = clues[x]
-
-                # # START FROM LEFT
-                # for pos_l in range(0, M):
-                    # if self.get(x, pos_l, transpose) != 0:
-                        # break
-
-                # # Last non wall space in contiguous box
-                # # Works as long as there is at least one clue / line is not full of x
-                # for pos_r in range(pos_l, M):
-                    # if self.get(x, pos_r, transpose) == 0:
-                        # break
-
-                # if pos_r < M-1:
-                    # pos_r -= 1
-
-                # # TODO: check if mistake here, and should only use if the filled square is central enough
-                # if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
-                    # c = clue[0]
-                    # movable = pos_r + 1 - pos_l - c
-
-                    # # Filling the middle
-                    # for y in range(pos_l + movable, pos_r - movable + 1):
-                        # self.set(x, y, 1, transpose)
-
-                    # # Clue close to the left
-                    # for y0 in range(0, c-1):
-                        # if self.get(x, y0, transpose) == 1:
-                            # for y in range(y0, c):
-                                # self.set(x, y, 1, transpose)
-
-
-                # # START FROM RIGHT
-                # for pos_r in range(M-1, -1, -1):
-                    # if self.get(x, pos_r, transpose) != 0:
-                        # break
-
-                # for pos_l in range(pos_r, -1, -1):
-                    # if self.get(x, pos_l, transpose) == 0:
-                        # break
-
-                # if pos_l > 0:
-                    # pos_l += 1
-
-                # if any(self.get(x, y, transpose) == 1 for y in range(pos_l, pos_r+1)):
-                    # c = clue[-1]
-                    # movable = pos_r + 1 - pos_l - c
-
-                    # # Filling the middle
-                    # for y in range(pos_l + movable, pos_r - movable + 1):
-                        # self.set(x, y, 1, transpose)
-
-                    # # From the right
-                    # for y0 in range(M-1, M-1 - (c-1), -1):
-                        # if self.get(x, y0, transpose) == 1:
-                            # for y in range(y0, M-1 - c, -1):
-                                # self.set(x, y, 1, transpose)
-
-
-
 
 
 
     def solve(self):
-        # self.print_clues()
-        # self.print()
-
         self.deduce_initial()
-
-        # self.print()
-
-        # self.set(14, 4, 1, changed, False)
 
         while len(self.changed) > 0 and self.todo > 0:
             self.deduce()
-
-        # print("========> AFTER DEDUCTIONS")
-        # self.print()
-
-
-        # print(self.done_up_to)
-        # print(self.clue_done_up_to)
 
         if self.todo == 0:
             res = self.grid
@@ -505,55 +298,6 @@ class Nonogram:
 
     # Actually worse than before, let's check if it's because it's buggy or a bad idea
     def next_guess(self):
-        # current = self.M + self.N
-        # x0 = None
-        # y0 = None
-
-
-        # for x in range(0, self.N):
-            # score = self.row_to_empty[x]
-            # if score < current and score > 0:
-                # current = score
-                # x0 = x
-
-        # current = self.M + self.N
-
-        # for y in range(0, self.M):
-            # if self.grid[x0][y] == '?':
-                # score = self.col_to_empty[y]
-                # if score < current:
-                    # current = score
-                    # y0 = y
-
-        # return (x0, y0)
-
-        # for x in range(0, self.N):
-            # score = min(self.row_to_fill[x], self.row_to_empty[x])
-            # if score < current and score > 0:
-                # current = score
-                # x0 = x
-
-        # for y in range(0, self.M):
-            # score = min(self.col_to_fill[y], self.col_to_empty[y])
-            # if score < current and score > 0:
-                # current = score
-                # y0 = y
-
-        # if y0 is not None:
-            # if self.grid[x0][y0] == '?':
-                # return (x0, y0)
-            # else:
-                # for x in range(0, self.N):
-                    # if self.grid[x][y0] == '?':
-                        # return (x, y0)
-        # else:
-            # for y in range(0, self.M):
-                # if self.grid[x0][y] == '?':
-                    # return (x0, y)
-
-
-
-
         for xu in range(0, self.N):
             if self.row_set[xu] < self.M:
                 break
@@ -575,15 +319,6 @@ class Nonogram:
         y0 = yu if self.col_set[yu] > self.col_set[yb] else yb
 
         if self.row_set[x0] > self.col_set[y0]:
-            # for y in range(0, self.M):
-                # current = self.N + self.M
-                # if self.col_set[y] < current and self.grid[x0][y] == '?':
-                    # current = self.col_set[y]
-                    # yy = y
-
-            # return (x0, yy)
-
-
             for y in range(0, self.M):
                 if self.grid[x0][y] == 2:
                     return (x0, y)
@@ -596,66 +331,10 @@ class Nonogram:
 
 
 
-
-
-
-        raise ValueError("WAAAAAAT")
-
-
-        # TODO: keep track of the next instead of looping on the entire grid like an idiot
-        # Also, assuming a square shape for now
-        for round in range(0, self.N // 2):
-            for y in range(round, self.N - round):
-                if self.grid[round][y] == 2:
-                    return (round, y)
-
-            for x in range(round + 1, self.N - round):
-                if self.grid[x][round] == 2:
-                    return (x, round)
-
-            for y in range(self.N - 1 - round, round - 1, -1):
-                if self.grid[round][y] == 2:
-                    return (round, y)
-
-            for x in range(self.N - 2 - round, round, -1):
-                if self.grid[x][round] == 2:
-                    return (x, round)
-
-        # Base case
-        for x in range(0, self.N):
-            for y in range(0, self.M):
-                if self.grid[x][y] == 2:
-                    return (x, y)
-
-
-
     def guess(self, t=0):
         x, y = self.next_guess()
 
-
-        # done = False
-        # # for x in range(0, self.N):
-        # for x in range(self.N - 1, -1, -1):
-            # for y in range(0, self.M):
-                # if self.grid[x][y] == '?':
-                    # done = True
-                # if done:
-                    # break
-            # if done:
-                # break
-
         for g in [0, 1]:
-
-            # Useless now
-
-            # if sum([1 if i == 0 else 0 for i in self.grid[x]]) >= self.M - sum(self.rowclues[x]) and g == 0:
-                # continue
-
-            # if sum([1 if self.grid[xx][y] == 0 else 0 for xx in range(0, self.N)]) >= self.N - sum(self.colclues[y]) and g == 0:
-                # continue
-
-
-
             n = self.clone()
 
             try:
@@ -666,7 +345,6 @@ class Nonogram:
                 continue   # Wrong guess
 
             if n.todo == 0:
-                # n.print()
                 return n.grid
 
             res = n.guess(t+1)
