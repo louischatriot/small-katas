@@ -1,4 +1,36 @@
 from time import time
+import heapq
+
+class Timer():
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.start = time()
+        self.events = {}
+        self.current_events = {}
+
+    def time(self, message = ''):
+        duration = time() - self.start
+        print(f"{message} ===> Duration: {duration}")
+        self.reset()
+
+    def start_event(self, evt):
+        self.current_events[evt] = time()
+
+    def stop_event(self, evt):
+        if evt not in self.events:
+            self.events[evt] = (0, 0)
+
+        self.events[evt] = (self.events[evt][0] + time() - self.current_events[evt], self.events[evt][1] + 1)
+
+    def print_events(self):
+        for evt, v in self.events.items():
+            print(f"{evt} - avg {v[0] / v[1]} - total {v[0]} - number {v[1]}")
+
+
+t = Timer()
+
 
 
 
@@ -21,28 +53,39 @@ class Nonogram:
         self.M = len(self.colclues)
 
 
-        self.changed = set()
+
+        self.reset_changed()
+
+
+
 
         if not clone:
             self.grid = [[2 for _ in range(0, self.M)] for _ in range(0, self.N)]
             self.row_set = [0 for _ in range(0, self.N)]
             self.col_set = [0 for _ in range(0, self.M)]
             self.todo = self.M * self.N
+            self.rowboundaries = [list((sum(clues[0:i]) + i, self.M - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.rowclues]
+            self.colboundaries = [list((sum(clues[0:i]) + i, self.N - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.colclues]
 
-            self.rowboundaries = [tuple((sum(clues[0:i]) + i, self.M - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.rowclues]
-            self.colboundaries = [tuple((sum(clues[0:i]) + i, self.N - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.colclues]
 
-            self.done_up_to = {
-                False: { 'left': [0 for _ in range(0, self.M)], 'right': [self.M - 1 for _ in range(0, self.M)] },
-                True: { 'left': [0 for _ in range(0, self.N)], 'right': [self.N - 1 for _ in range(0, self.N)] }
-            }
-            self.clue_done_up_to = {
-                False: { 'left': [0 for _ in range(0, self.M)], 'right': [0 for _ in range(0, self.M)] },
-                True: { 'left': [0 for _ in range(0, self.N)], 'right': [0 for _ in range(0, self.N)] }
-            }
+            # self.order = []
+            # for x, clue in enumerate(self.rowclues):
+                # heapq.heappush(self.order, (self.M - sum(clue) - len(clue) + 1, 'row', x))
+
+
+
+            # self.order = [('row', x, self.M - sum(clue) - len(clue)) for x, clue in enumerate(self.rowclues)]
 
     def reset_changed(self):
         self.changed = set()
+        self.changed_rows = set()
+        self.changed_cols = set()
+
+
+    def to_check(self):
+        return len(self.changed) > 0
+
+        return len(self.changed_rows) > 0 or len(self.changed_cols) > 0
 
     def clone(self):
         n = Nonogram((self. colclues, self.rowclues), True)
@@ -50,16 +93,6 @@ class Nonogram:
         n.row_set = [c for c in self.row_set]
         n.col_set = [c for c in self.col_set]
         n.todo = self.todo
-        n.done_up_to = {
-            False: { 'left': [i for i in self.done_up_to[False]['left']], 'right': [i for i in self.done_up_to[False]['right']] },
-            True: { 'left': [i for i in self.done_up_to[True]['left']], 'right': [i for i in self.done_up_to[True]['right']] }
-        }
-
-        n.clue_done_up_to = {
-            False: { 'left': [i for i in self.clue_done_up_to[False]['left']], 'right': [i for i in self.clue_done_up_to[False]['right']] },
-            True: { 'left': [i for i in self.clue_done_up_to[True]['left']], 'right': [i for i in self.clue_done_up_to[True]['right']] }
-        }
-
         n.rowboundaries = [i for i in self.rowboundaries]
         n.colboundaries = [i for i in self.colboundaries]
 
@@ -170,26 +203,42 @@ class Nonogram:
     def left_most(self, x, M, clue, boundary, transpose, i_start, idx):
         c = clue[idx]
         bl, bh = boundary[idx]
+        res = None
 
-        i0 = max(bl, i_start)
-        while i0 <= bh:
-            if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
-                if idx == len(clue) - 1:
+
+
+        if idx == len(clue) - 1:
+            t.start_event("LAST IDX")
+
+            i0 = max(bl, i_start)
+            while i0 <= bh and res is None:
+                if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
                     if all(self.get(x, i, transpose) in [0, 2] for i in range(i0 + c, M)):
-                        return [i0]
+                        res = [i0]
 
+                if self.get(x, i0, transpose) == 1:
+                    break
                 else:
+                    i0 += 1
+
+            t.stop_event("LAST IDX")
+
+        else:
+
+            i0 = max(bl, i_start)
+            while i0 <= bh and res is None:
+                if all(self.get(x, i, transpose) >= 1 for i in range(i0, i0 + c)):
                     if self.get(x, i0 + c, transpose) in [0, 2]:
                         tail = self.left_most(x, M, clue, boundary, transpose, i0 + c + 1, idx + 1)
                         if tail:
-                            return [i0] + tail
+                            res = [i0] + tail
 
-            if self.get(x, i0, transpose) == 1:
-                break
-            else:
-                i0 += 1
+                if self.get(x, i0, transpose) == 1:
+                    break
+                else:
+                    i0 += 1
 
-        return None
+        return res
 
 
     def right_most(self, x, M, clue, boundary, transpose, i_start, idx):
@@ -229,12 +278,43 @@ class Nonogram:
                 if len(clue) == 0:
                     continue   # Nothing to learn
 
+                t.start_event('LEFT')
+
                 left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
+
+                t.stop_event('LEFT')
 
                 if left is None:
                     raise ValueError("Wrong guess earlier")
 
+                t.start_event('RIGHT')
+
                 right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
+
+                t.stop_event('RIGHT')
+
+
+                # TODO: FIX
+
+                # print("===========================")
+                # print(clue)
+                # print(boundary)
+                # print(left)
+                # print(right)
+
+
+                # if left is not None and right is not None:
+                    # boundaries[x] = [(l, r) for l, r in zip(left, right)]
+                    # print("==================================")
+                    # print("==================================")
+                    # print(boundaries[x])
+
+
+                    # print(boundaries[x])
+
+                    # for i, (l, r) in enumerate(zip(left, right)):
+                        # boundaries[x][i] = (l, r)
+
 
                 for l, r, c in zip(left, right, clue):
                     for i in range(max(l, r), min(l, r) + c):
@@ -255,7 +335,7 @@ class Nonogram:
     def solve(self):
         self.deduce_initial()
 
-        while len(self.changed) > 0 and self.todo > 0:
+        while self.to_check() and self.todo > 0:
             self.deduce()
 
         if self.todo == 0:
@@ -269,6 +349,31 @@ class Nonogram:
 
     # Actually worse than before, let's check if it's because it's buggy or a bad idea
     def next_guess(self):
+        # row = 0
+        # current = self.row_set[0] + sum(self.rowclues[0]) + len(self.rowclues[0])
+        # for x in range(1, self.N):
+            # if self.M > self.row_set[x] and self.row_set[x] + sum(self.rowclues[x]) + len(self.rowclues[x]) > current:
+                # row = x
+                # current = self.row_set[x] + sum(self.rowclues[x]) + len(self.rowclues[x])
+
+        # col = None
+        # for y in range(0, self.M):
+            # if self.N > self.col_set[y] and self.col_set[y] + sum(self.colclues[y]) + len(self.colclues[y]) > current:
+                # col = y
+                # current = self.col_set[y] + sum(self.colclues[y]) + len(self.colclues[y])
+
+        # if col:
+            # for x in range(0, self.N):
+                # if self.grid[x][col] == 2:
+                    # return (x, col)
+        # else:
+            # for y in range(0, self.M):
+                # if self.grid[row][y] == 2:
+                    # return (row, y)
+
+        # raise ValueError("EEEE")
+
+
         for xu in range(0, self.N):
             if self.row_set[xu] < self.M:
                 break
@@ -314,11 +419,12 @@ class Nonogram:
         # x, y = self.next_guess()
 
         for g in [0, 1]:
+            # print("GUESS")
             n = self.clone()
 
             try:
                 n.set(x, y, g, False)
-                while len(n.changed) > 0:
+                while n.to_check() > 0:
                     n.deduce()
             except:
                 continue   # Wrong guess
@@ -413,6 +519,7 @@ clues = (((), (4, 1), (11,), (2, 4), (2, 5), (9,), (10,), (10,), (11,), (12,), (
 
 
 
+clues = (((25,), (1, 1), (1, 2, 1), (1, 3, 1), (1, 5, 1), (1, 5, 1), (1, 7, 1), (1, 7, 1), (1, 7, 1), (1, 7, 1), (1, 7, 1), (1, 6, 1), (1, 5, 1), (1, 4, 1), (1, 5, 1), (1, 7, 1), (1, 7, 1), (1, 9, 1), (1, 6, 3, 1), (1, 8, 2, 2, 1), (1, 2, 1, 2, 3, 1, 1), (1, 2, 2, 4, 1, 2), (1, 3, 4, 1, 1, 4), (2, 1, 1, 1, 1, 1, 1), (2, 2, 1, 1, 2, 1), (1, 2, 2, 2, 2, 1), (1, 1, 4, 2, 1), (1, 3, 4, 1), (1, 3, 6, 1), (1, 9, 1), (1, 8, 1), (1, 6, 1), (1, 3, 1), (1, 1), (25,)), ((35,), (1, 2, 1), (1, 1, 1, 1), (1, 1, 2, 1), (1, 4, 1), (1, 2, 1), (1, 5, 2, 1), (1, 9, 5, 1, 1), (1, 18, 2, 1, 1, 1), (1, 24, 2, 1), (1, 17, 1, 4, 1), (1, 16, 4, 1, 3, 1), (1, 6, 6, 1, 1, 2, 1), (1, 3, 5, 2, 4, 1), (1, 1, 2, 1, 4, 1), (1, 2, 3, 6, 1), (1, 1, 9, 1), (1, 2, 8, 1), (1, 2, 5, 1), (1, 1, 1), (1, 2, 1), (1, 1, 1, 1), (1, 2, 1, 1), (1, 2, 1), (35,)))
 
 
 
@@ -428,143 +535,32 @@ print(n.row_set)
 print(n.col_set)
 
 print("===================== RESULT")
+
+# print(n.N, n.M)
+
+# for x, c in enumerate(n.rowclues):
+    # print(x, c)
+
+# for o in n.order:
+    # print(o)
+# print(n.rowclues)
+# print(n.order)
+
+# print("===========================")
+# while True:
+    # o = heapq.heappop(n.order)
+    # print(o)
+
+t.print_events()
+
+
 print(res)
-n.print()
+# n.print()
 
 
-if res == ans:
-    print("FUCK YEAH")
-else:
-    print("OH NOES")
 
 
 print("==> Duration:", time() - start)
-
-
-1/0
-
-
-# print(n.rowclues)
-# print(n.colclues)
-# n.print()
-# print(n.row_set)
-# print(n.col_set)
-
-
-
-# print("==========================================")
-# print("==========================================")
-
-
-
-
-
-
-
-
-def left_most(line, clues, boundaries, i_start, idx):
-    c = clues[idx]
-    bl, bh = boundaries[idx]
-
-    i0 = max(bl, i_start)
-    while i0 <= bh:
-        if all(line[i] in [1, 2] for i in range(i0, i0 + c)):
-            if idx == len(clues) - 1:
-                if all(line[i] in [0, 2] for i in range(i0 + c, len(line))):
-                    return [i0]
-
-            else:
-                if line[i0 + c] in [0, 2]:
-                    tail = left_most(line, clues, boundaries, i0 + c + 1, idx + 1)
-                    if tail:
-                        return [i0] + tail
-
-        if line[i0] == 1:
-            break
-        else:
-            i0 += 1
-
-    return None
-
-
-def right_most(line, clues, boundaries, i_start, idx):
-    c = clues[idx]
-    bl, bh = boundaries[idx]
-
-    i0 = min(bh, i_start)
-    while i0 >= bl:
-        if all(line[i] in [1, 2] for i in range(i0, i0 + c)):
-            if idx == 0:
-                if all(line[i] in [0, 2] for i in range(0, i0)):
-                    return [i0]
-
-            else:
-                if line[i0 - 1] in [0, 2]:
-                    tail = right_most(line, clues, boundaries, i0 - clues[idx-1] - 1, idx - 1)
-                    if tail:
-                        return tail + [i0]
-
-        if line[i0 + c - 1] == 1:
-            break
-        else:
-            i0 -= 1
-
-    return None
-
-
-
-
-
-
-
-line = [2 for i in range(0, 15)]
-clues = (4, 5, 2)
-
-boundaries = tuple((sum(clues[0:i]) + i, len(line) - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues)))
-print(boundaries)
-
-
-line[14] = 1
-line[11] = 1
-# line[2] = 0
-# line[3] = 1
-# line[6] = 0
-# line[7] = 1
-# line[8] = 1
-# line[10] = 1
-
-
-print(line)
-print(clues)
-
-
-left = left_most(line, clues, boundaries, 0, 0)
-right = right_most(line, clues, boundaries, len(line) - 1, len(clues) - 1)
-
-print(left)
-print(right)
-
-for l, r, c in zip(left, right, clues):
-    for i in range(max(l, r), min(l, r) + c):
-        line[i] = 1
-
-for i in range(0, left[0]):
-    line[i] = 0
-
-for i in range(right[-1] + clues[-1], len(line)):
-    line[i] = 0
-
-for idx in range(1, len(clues)):
-    for i in range(right[idx - 1] + clues[idx - 1], left[idx]):
-        line[i] = 0
-
-print(line)
-
-
-
-
-
-
 
 
 
