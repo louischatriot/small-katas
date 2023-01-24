@@ -32,6 +32,10 @@ class Timer():
 t = Timer()
 
 
+toutou = dict()
+
+threes = [3**i for i in range(0, 60)]
+
 
 
 def get_rows_and_cols(changed):
@@ -52,12 +56,7 @@ class Nonogram:
         self.N = len(self.rowclues)
         self.M = len(self.colclues)
 
-
-
         self.reset_changed()
-
-
-
 
         if not clone:
             self.grid = [[2 for _ in range(0, self.M)] for _ in range(0, self.N)]
@@ -67,14 +66,9 @@ class Nonogram:
             self.rowboundaries = [list((sum(clues[0:i]) + i, self.M - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.rowclues]
             self.colboundaries = [list((sum(clues[0:i]) + i, self.N - sum(clues[i:]) - (len(clues) - 1 - i)) for i in range(0, len(clues))) for clues in self.colclues]
 
+    def pre_reset(self):
+        return (self.changed_rows, self.changed_cols)
 
-            # self.order = []
-            # for x, clue in enumerate(self.rowclues):
-                # heapq.heappush(self.order, (self.M - sum(clue) - len(clue) + 1, 'row', x))
-
-
-
-            # self.order = [('row', x, self.M - sum(clue) - len(clue)) for x, clue in enumerate(self.rowclues)]
 
     def reset_changed(self):
         self.changed = set()
@@ -83,7 +77,7 @@ class Nonogram:
 
 
     def to_check(self):
-        return len(self.changed) > 0
+        # return len(self.changed) > 0
 
         return len(self.changed_rows) > 0 or len(self.changed_cols) > 0
 
@@ -145,7 +139,16 @@ class Nonogram:
 
         if self.grid[x][y] == 2:
             self.grid[x][y] = value
-            self.changed.add((x, y))
+
+
+            # self.changed.add((x, y))
+
+
+            if not transpose:
+                self.changed_cols.add(y)
+            else:
+                self.changed_rows.add(x)
+
 
             self.todo -= 1
 
@@ -157,7 +160,9 @@ class Nonogram:
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
 
+            # t.stop_event('SET')
             return True
+
 
         raise ValueError("Incompatibility")
 
@@ -169,37 +174,6 @@ class Nonogram:
         return self.grid[x][y]
 
 
-    def deduce_initial(self):
-        # Cannot slide much
-        for clues, transpose, M in [(self.rowclues, False, self.M), (self.colclues, True, self.N)]:
-            for x, clue in enumerate(clues):
-                movable = M - sum(clue) - (len(clue) - 1)
-
-                if movable == 0:
-                    y = 0
-                    for _ in range(0, clue[0]):
-                        self.set(x, y, 1, transpose)
-                        y += 1
-
-                    for c in clue[1:]:
-                        self.set(x, y, 0, transpose)
-                        y += 1
-
-                        for _ in range(0, c):
-                            self.set(x, y, 1, transpose)
-                            y += 1
-
-                else:
-                    for i, c in enumerate(clue):
-                        if c > movable:
-                            before = sum(clue[0:i]) + len(clue[0:i])
-                            for dy in range(0, c - movable):
-                                self.set(x, before + movable + dy, 1, transpose)
-
-
-
-
-
     def left_most(self, x, M, clue, boundary, transpose, i_start, idx):
         c = clue[idx]
         bl, bh = boundary[idx]
@@ -208,7 +182,7 @@ class Nonogram:
 
 
         if idx == len(clue) - 1:
-            t.start_event("LAST IDX")
+            # t.start_event("LAST IDX")
 
             i0 = max(bl, i_start)
             while i0 <= bh and res is None:
@@ -221,7 +195,7 @@ class Nonogram:
                 else:
                     i0 += 1
 
-            t.stop_event("LAST IDX")
+            # t.stop_event("LAST IDX")
 
         else:
 
@@ -267,7 +241,9 @@ class Nonogram:
 
 
     def deduce(self):
-        rows, cols = get_rows_and_cols(self.changed)
+        global toutou
+
+        rows, cols = self.changed_rows, self.changed_cols
         self.reset_changed()
 
         for clues, boundaries, transpose, the_rows, M in [(self.rowclues, self.rowboundaries, False, rows, self.M), (self.colclues, self.colboundaries, True, cols, self.N)]:
@@ -278,20 +254,21 @@ class Nonogram:
                 if len(clue) == 0:
                     continue   # Nothing to learn
 
-                t.start_event('LEFT')
+                line = str(sum(i * s for i, s in zip([self.get(x, i, transpose) for i in range(0, M)], threes)))
+                line += '  -  ' + '.'.join(str(c) for c in clue)
 
-                left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
+                tasty = False
+                if line in toutou:
+                    left, right = toutou[line]
+                else:
+                    left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
 
-                t.stop_event('LEFT')
+                    if left is None:
+                        raise ValueError("Wrong guess earlier")
 
-                if left is None:
-                    raise ValueError("Wrong guess earlier")
+                    right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
 
-                t.start_event('RIGHT')
-
-                right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
-
-                t.stop_event('RIGHT')
+                    toutou[line] = (left, right)
 
 
                 # TODO: FIX
@@ -332,8 +309,11 @@ class Nonogram:
 
 
 
+
     def solve(self):
-        self.deduce_initial()
+        for i in range(0, max(self.N, self.M)):
+            self.changed_rows.add(min(i, self.N - 1))
+            self.changed_cols.add(min(i, self.M - 1))
 
         while self.to_check() and self.todo > 0:
             self.deduce()
@@ -405,7 +385,7 @@ class Nonogram:
                     return (x, y0)
 
 
-    def guess(self, t=0):
+    def guess(self):
         done = False
         for x in range(0, self.N):
             for y in range(0, self.M):
@@ -432,7 +412,7 @@ class Nonogram:
             if n.todo == 0:
                 return n.grid
 
-            res = n.guess(t+1)
+            res = n.guess()
             if res is not None:
                 return res
 
@@ -535,6 +515,8 @@ print(n.row_set)
 print(n.col_set)
 
 print("===================== RESULT")
+
+print(len(toutou))
 
 # print(n.N, n.M)
 
