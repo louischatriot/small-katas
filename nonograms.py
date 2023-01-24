@@ -32,7 +32,7 @@ class Timer():
 t = Timer()
 
 
-toutou = dict()
+cache = dict()
 
 threes = [3**i for i in range(0, 60)]
 
@@ -147,6 +147,7 @@ class Nonogram:
             if not transpose:
                 self.changed_cols.add(y)
             else:
+                # if self.row_set[x] < self.M:
                 self.changed_rows.add(x)
 
 
@@ -241,10 +242,22 @@ class Nonogram:
 
 
     def deduce(self):
-        global toutou
+        global cache
 
         rows, cols = self.changed_rows, self.changed_cols
         self.reset_changed()
+
+        # l = sorted([(self.row_set[x], x) for x in rows])
+        # print("============================")
+        # print("============================")
+        # print(rows)
+        # print(l)
+
+        # rows = []
+        # for prio, x in l:
+            # if prio < self.M:
+                # rows.append(x)
+
 
         for clues, boundaries, transpose, the_rows, M in [(self.rowclues, self.rowboundaries, False, rows, self.M), (self.colclues, self.colboundaries, True, cols, self.N)]:
             for x in the_rows:
@@ -257,9 +270,10 @@ class Nonogram:
                 line = str(sum(i * s for i, s in zip([self.get(x, i, transpose) for i in range(0, M)], threes)))
                 line += '  -  ' + '.'.join(str(c) for c in clue)
 
-                tasty = False
-                if line in toutou:
-                    left, right = toutou[line]
+                cached = False
+                if line in cache:
+                    cached = True
+                    left, right = cache[line]
                 else:
                     left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
 
@@ -267,8 +281,7 @@ class Nonogram:
                         raise ValueError("Wrong guess earlier")
 
                     right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
-
-                    toutou[line] = (left, right)
+                    cache[line] = (left, right)
 
 
                 # TODO: FIX
@@ -292,7 +305,6 @@ class Nonogram:
                     # for i, (l, r) in enumerate(zip(left, right)):
                         # boundaries[x][i] = (l, r)
 
-
                 for l, r, c in zip(left, right, clue):
                     for i in range(max(l, r), min(l, r) + c):
                         self.set(x, i, 1, transpose)
@@ -306,8 +318,6 @@ class Nonogram:
                 for idx in range(1, len(clue)):
                     for i in range(right[idx - 1] + clue[idx - 1], left[idx]):
                         self.set(x, i, 0, transpose)
-
-
 
 
     def solve(self):
@@ -396,10 +406,7 @@ class Nonogram:
             if done:
                 break
 
-        # x, y = self.next_guess()
-
         for g in [0, 1]:
-            # print("GUESS")
             n = self.clone()
 
             try:
@@ -415,7 +422,6 @@ class Nonogram:
             res = n.guess()
             if res is not None:
                 return res
-
 
         return None
 
@@ -516,7 +522,7 @@ print(n.col_set)
 
 print("===================== RESULT")
 
-print(len(toutou))
+
 
 # print(n.N, n.M)
 
