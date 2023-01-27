@@ -185,6 +185,78 @@ class Nonogram:
         if idx == len(clue) - 1:
             # t.start_event("LAST IDX")
 
+            gaps = []
+            il = None
+            ih = None
+            s = max(bl, i_start)
+            laste = s - 1
+
+            # TODO: CHECK IF ONLY WORKS BECAUSE BH IS M-1
+            for i in range(s, bh + 1):
+                v = self.get(x, i, transpose)
+
+                if v == 1:
+                    if il is None:
+                        il = i
+                    ih = i
+
+                if v == 0:
+                    if i - 1 - laste >= c:
+                        gaps.append((laste + 1, i - 1))
+                        laste = i
+
+            if M - laste >= c:
+                gaps.append((laste + 1, M - 1))
+
+            if il is None:
+                il = s
+                ih = s
+
+            # print(il, ih, s, c)
+            # print(gaps)
+
+            if ih - il + 1 <= c:
+                for gl, gh in gaps:
+                    if gl <= il <= ih <= gh:
+                        return [max(gl, ih - c + 1)]
+
+            # TODO: stop the above loop once we look at gaps too far in the future? Or use a different data structure?
+
+
+            return None
+
+
+            for i in range(bestl, bh + 1):
+
+                if v == 0 and il is None:
+                    if i >= bestl + c - 1:
+                        return [i]
+                    else:
+                        bestl = i
+
+
+                if self.get(x, i, transpose) == 1:
+                    if il is None:
+                        il = i
+                    ih = i
+
+            if il is None and ih is None:
+                return [bl]
+
+            # TODO: FIX FIX
+            if ih is None:
+                return [max(bh, il - c + 1)]
+
+            # TODO: FIX FIX
+            if ih - il + 1 <= c:
+                print(il, ih, c)
+                return [max(bh, ih - c + 1)]
+            else:
+                return None
+
+
+
+
             i0 = max(bl, i_start)
             while i0 <= bh and res is None:
                 if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
@@ -200,18 +272,120 @@ class Nonogram:
 
         else:
 
-            i0 = max(bl, i_start)
-            while i0 <= bh and res is None:
-                if all(self.get(x, i, transpose) >= 1 for i in range(i0, i0 + c)):
-                    if self.get(x, i0 + c, transpose) in [0, 2]:
-                        tail = self.left_most(x, M, clue, boundary, transpose, i0 + c + 1, idx + 1)
-                        if tail:
-                            res = [i0] + tail
 
-                if self.get(x, i0, transpose) == 1:
+
+            s = max(bl, i_start)
+            lastz = s - 1
+            i = s
+
+            # The zeroes
+            while i < bh + c:
+                v = self.get(x, i, transpose)
+
+                if v == 1:
                     break
+                elif v == 0:
+                    lastz = i
                 else:
-                    i0 += 1
+                    if i - lastz >= c:
+                        if self.get(x, i + 1, transpose) in [0, 2]:
+                            tail = self.left_most(x, M, clue, boundary, transpose, i + 2, idx + 1)
+                            if tail:
+                                return [i - c + 1] + tail
+
+                        else:
+                            i += 1
+                            break
+
+                i += 1
+
+            if lastz >= bh or i == bh + c:
+                return None
+
+            # The ones
+            first_one = i
+            max_i = min(bh, first_one) + c - 1
+
+            while i <= max_i:
+                while self.get(x, i, transpose) == 1:
+                    i += 1
+                    if i == max_i + 1:
+                        if self.get(x, i, transpose) == 1:
+                            return None
+                        else:
+                            tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
+                            if tail:
+                                return [i - c] + tail
+                            else:
+                                return None
+
+                if self.get(x, i, transpose) == 0:
+                    if i - 1 - lastz >= c:
+                        tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
+                        if tail:
+                            return [i - c] + tail
+
+                    return None
+
+                while i < lastz + c:
+                    i += 1
+                    if self.get(x, i, transpose) == 0 or i == max_i + 1:
+                        return None
+
+                i += 1
+                v = self.get(x, i, transpose)
+
+                if v in [0, 2]:
+                    tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
+                    if tail:
+                        return [i - c] + tail
+                    elif v == 0:
+                        return
+
+                else:
+                    continue
+
+
+
+            return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            # i0 = max(bl, i_start)
+            # while i0 <= bh and res is None:
+                # if all(self.get(x, i, transpose) >= 1 for i in range(i0, i0 + c)):
+                    # if self.get(x, i0 + c, transpose) in [0, 2]:
+                        # tail = self.left_most(x, M, clue, boundary, transpose, i0 + c + 1, idx + 1)
+                        # if tail:
+                            # res = [i0] + tail
+
+                # if self.get(x, i0, transpose) == 1:
+                    # break
+                # else:
+                    # i0 += 1
+
 
         return res
 
@@ -259,7 +433,7 @@ class Nonogram:
                 # rows.append(x)
 
 
-        for clues, boundaries, transpose, the_rows, M in [(self.rowclues, self.rowboundaries, False, rows, self.M), (self.colclues, self.colboundaries, True, cols, self.N)]:
+        for clues, boundaries, transpose, the_rows, M, rs in [(self.rowclues, self.rowboundaries, False, rows, self.M, self.row_set), (self.colclues, self.colboundaries, True, cols, self.N, self.col_set)]:
             for x in the_rows:
                 clue = clues[x]
                 boundary = boundaries[x]
@@ -269,6 +443,10 @@ class Nonogram:
 
                 line = str(sum(i * s for i, s in zip([self.get(x, i, transpose) for i in range(0, M)], threes)))
                 line += '  -  ' + '.'.join(str(c) for c in clue)
+
+                # print("==============", transpose, x)
+                # self.print()
+
 
                 cached = False
                 if line in cache:
@@ -437,6 +615,7 @@ def solve(clues):
 
 
 
+
 clues = (
     ((1, 1), (4,), (1, 1, 1), (3,), (1,)),
     ((1,), (2,), (3,), (2, 1), (4,))
@@ -506,6 +685,23 @@ clues = (((), (4, 1), (11,), (2, 4), (2, 5), (9,), (10,), (10,), (11,), (12,), (
 
 
 clues = (((25,), (1, 1), (1, 2, 1), (1, 3, 1), (1, 5, 1), (1, 5, 1), (1, 7, 1), (1, 7, 1), (1, 7, 1), (1, 7, 1), (1, 7, 1), (1, 6, 1), (1, 5, 1), (1, 4, 1), (1, 5, 1), (1, 7, 1), (1, 7, 1), (1, 9, 1), (1, 6, 3, 1), (1, 8, 2, 2, 1), (1, 2, 1, 2, 3, 1, 1), (1, 2, 2, 4, 1, 2), (1, 3, 4, 1, 1, 4), (2, 1, 1, 1, 1, 1, 1), (2, 2, 1, 1, 2, 1), (1, 2, 2, 2, 2, 1), (1, 1, 4, 2, 1), (1, 3, 4, 1), (1, 3, 6, 1), (1, 9, 1), (1, 8, 1), (1, 6, 1), (1, 3, 1), (1, 1), (25,)), ((35,), (1, 2, 1), (1, 1, 1, 1), (1, 1, 2, 1), (1, 4, 1), (1, 2, 1), (1, 5, 2, 1), (1, 9, 5, 1, 1), (1, 18, 2, 1, 1, 1), (1, 24, 2, 1), (1, 17, 1, 4, 1), (1, 16, 4, 1, 3, 1), (1, 6, 6, 1, 1, 2, 1), (1, 3, 5, 2, 4, 1), (1, 1, 2, 1, 4, 1), (1, 2, 3, 6, 1), (1, 1, 9, 1), (1, 2, 8, 1), (1, 2, 5, 1), (1, 1, 1), (1, 2, 1), (1, 1, 1, 1), (1, 2, 1, 1), (1, 2, 1), (35,)))
+
+
+
+# clues = (((1, 1), (4,), (1, 1, 1), (3,), (1,)), ((1,), (2,), (3,), (2, 1), (4,)))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
