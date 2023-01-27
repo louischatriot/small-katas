@@ -37,6 +37,9 @@ cache = dict()
 threes = [3**i for i in range(0, 60)]
 
 
+ze_clue = (1, 7, 1)
+
+
 
 def get_rows_and_cols(changed):
     rows = set()
@@ -180,6 +183,8 @@ class Nonogram:
         bl, bh = boundary[idx]
         res = None
 
+        if clue == ze_clue:
+            print("CALLED FOR idx:", idx)
 
 
         if idx == len(clue) - 1:
@@ -306,7 +311,18 @@ class Nonogram:
             first_one = i
             max_i = min(bh, first_one) + c - 1
 
+            if clue == ze_clue:
+                print("FINISHED ZEROES for clue", idx, " - Starting at", i_start)
+                print("Last zero:", lastz)
+                print("i:", i)
+                print("First one:", first_one)
+                print("Max i:", max_i)
+
             while i <= max_i:
+                if clue == ze_clue:
+                    print("STARTING BIG LOOP WITH i:", i)
+
+
                 while self.get(x, i, transpose) == 1:
                     i += 1
                     if i == max_i + 1:
@@ -319,28 +335,53 @@ class Nonogram:
                             else:
                                 return None
 
-                if self.get(x, i, transpose) == 0:
+                if clue == ze_clue:
+                    print("ROUND OF ONES DONE")
+                    print(i)
+
+
+                v = self.get(x, i, transpose)
+                if v in [0, 2]:
                     if i - 1 - lastz >= c:
+
                         tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
+
+                        if clue == ze_clue:
+                            print("Right after round of ones, found candidate and got:", tail)
+
                         if tail:
                             return [i - c] + tail
 
-                    return None
+                    if v == 0:
+                        return None
 
-                while i < lastz + c:
-                    i += 1
+                while i <= lastz + c:
                     if self.get(x, i, transpose) == 0 or i == max_i + 1:
                         return None
 
-                i += 1
+                    i += 1
+
+
+                if clue == ze_clue:
+                    print("In the last part of the loop with i:", i)
+
+
+                # i += 1
                 v = self.get(x, i, transpose)
 
                 if v in [0, 2]:
                     tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
+
+                    if clue == ze_clue:
+                        print("In the last loop, found candidate and got:", tail)
+
                     if tail:
                         return [i - c] + tail
                     elif v == 0:
-                        return
+                        return None
+                    else:
+                        i += 1
+                        # ACTUALLY STILL AN ISSUE HERE NEED TO FIND THE FIRST ONE
 
                 else:
                     continue
@@ -453,7 +494,26 @@ class Nonogram:
                     cached = True
                     left, right = cache[line]
                 else:
+
+                    if clue == ze_clue:
+                        print("=======================================")
+                        print("=======================================")
+                        print("=======================================")
+
+                        print([self.get(x, i, transpose) for i in range(0, M)])
+                        print(clue)
+                        print(boundary)
+
+                        print('-----------')
+
+
+
                     left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
+
+
+                    if clue == ze_clue:
+                        print(left)
+
 
                     if left is None:
                         raise ValueError("Wrong guess earlier")
