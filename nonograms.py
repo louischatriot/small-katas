@@ -1,45 +1,7 @@
 from time import time
-import heapq
-
-class Timer():
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.start = time()
-        self.events = {}
-        self.current_events = {}
-
-    def time(self, message = ''):
-        duration = time() - self.start
-        print(f"{message} ===> Duration: {duration}")
-        self.reset()
-
-    def start_event(self, evt):
-        self.current_events[evt] = time()
-
-    def stop_event(self, evt):
-        if evt not in self.events:
-            self.events[evt] = (0, 0)
-
-        self.events[evt] = (self.events[evt][0] + time() - self.current_events[evt], self.events[evt][1] + 1)
-
-    def print_events(self):
-        for evt, v in self.events.items():
-            print(f"{evt} - avg {v[0] / v[1]} - total {v[0]} - number {v[1]}")
-
-
-t = Timer()
-
 
 cache = dict()
-
-threes = [3**i for i in range(0, 60)]
-
-
-ze_clue = (1, 7, 1)
-
-
+other_cache = dict()
 
 def get_rows_and_cols(changed):
     rows = set()
@@ -80,8 +42,6 @@ class Nonogram:
 
 
     def to_check(self):
-        # return len(self.changed) > 0
-
         return len(self.changed_rows) > 0 or len(self.changed_cols) > 0
 
     def clone(self):
@@ -104,12 +64,6 @@ class Nonogram:
             for c in self.colclues:
                 l += (str(c[ci]) if ci < len(c) else ' ') + '  '
             print(l)
-        print("========================================================")
-
-
-    def print_clues(self):
-        print("ROW CLUES:", self.rowclues)
-        print("COL CLUES:", self.colclues)
         print("========================================================")
 
 
@@ -143,16 +97,8 @@ class Nonogram:
         if self.grid[x][y] == 2:
             self.grid[x][y] = value
 
-
-            # self.changed.add((x, y))
-
-
-            if not transpose:
-                self.changed_cols.add(y)
-            else:
-                # if self.row_set[x] < self.M:
-                self.changed_rows.add(x)
-
+            self.changed_cols.add(y)
+            self.changed_rows.add(x)
 
             self.todo -= 1
 
@@ -164,7 +110,6 @@ class Nonogram:
             if self.col_set[y] == self.N:
                 self.check_correct(None, y)
 
-            # t.stop_event('SET')
             return True
 
 
@@ -178,25 +123,33 @@ class Nonogram:
         return self.grid[x][y]
 
 
+    # Code here is much harder to follow than for right_most but about 50% more efficient
+    # Tests pass without having to rewrite right_most which would be a pain :)
     def left_most(self, x, M, clue, boundary, transpose, i_start, idx):
+        line = ''.join([str(self.get(x, i, transpose)) for i in range(i_start, M)])
+        zc = '-'.join([str(c) for c in clue[idx:]])
+        key = line + '-' + zc
+
+        if key in other_cache:
+            res, start = other_cache[key]
+            if res is None:
+                return None
+            res = [i + i_start - start for i in res]
+            return res
+
+
         c = clue[idx]
         bl, bh = boundary[idx]
         res = None
 
-        if clue == ze_clue:
-            print("CALLED FOR idx:", idx)
-
 
         if idx == len(clue) - 1:
-            # t.start_event("LAST IDX")
-
             gaps = []
             il = None
             ih = None
             s = max(bl, i_start)
             laste = s - 1
 
-            # TODO: CHECK IF ONLY WORKS BECAUSE BH IS M-1
             for i in range(s, bh + 1):
                 v = self.get(x, i, transpose)
 
@@ -217,68 +170,17 @@ class Nonogram:
                 il = s
                 ih = s
 
-            # print(il, ih, s, c)
-            # print(gaps)
-
             if ih - il + 1 <= c:
                 for gl, gh in gaps:
                     if gl <= il <= ih <= gh:
-                        return [max(gl, ih - c + 1)]
+                        res = [max(gl, ih - c + 1)]
+                        other_cache[key] = (res, i_start)
+                        return res
 
-            # TODO: stop the above loop once we look at gaps too far in the future? Or use a different data structure?
-
-
+            other_cache[key] = (None, i_start)
             return None
 
-
-            for i in range(bestl, bh + 1):
-
-                if v == 0 and il is None:
-                    if i >= bestl + c - 1:
-                        return [i]
-                    else:
-                        bestl = i
-
-
-                if self.get(x, i, transpose) == 1:
-                    if il is None:
-                        il = i
-                    ih = i
-
-            if il is None and ih is None:
-                return [bl]
-
-            # TODO: FIX FIX
-            if ih is None:
-                return [max(bh, il - c + 1)]
-
-            # TODO: FIX FIX
-            if ih - il + 1 <= c:
-                print(il, ih, c)
-                return [max(bh, ih - c + 1)]
-            else:
-                return None
-
-
-
-
-            i0 = max(bl, i_start)
-            while i0 <= bh and res is None:
-                if all(self.get(x, i, transpose) in [1, 2] for i in range(i0, i0 + c)):
-                    if all(self.get(x, i, transpose) in [0, 2] for i in range(i0 + c, M)):
-                        res = [i0]
-
-                if self.get(x, i0, transpose) == 1:
-                    break
-                else:
-                    i0 += 1
-
-            # t.stop_event("LAST IDX")
-
         else:
-
-
-
             s = max(bl, i_start)
             lastz = s - 1
             i = s
@@ -296,7 +198,9 @@ class Nonogram:
                         if self.get(x, i + 1, transpose) in [0, 2]:
                             tail = self.left_most(x, M, clue, boundary, transpose, i + 2, idx + 1)
                             if tail:
-                                return [i - c + 1] + tail
+                                res = [i - c + 1] + tail
+                                other_cache[key] = (res, i_start)
+                                return res
 
                         else:
                             i += 1
@@ -305,40 +209,29 @@ class Nonogram:
                 i += 1
 
             if lastz >= bh or i == bh + c:
+                other_cache[key] = (None, i_start)
                 return None
 
             # The ones
             first_one = i
             max_i = min(bh, first_one) + c - 1
 
-            if clue == ze_clue:
-                print("FINISHED ZEROES for clue", idx, " - Starting at", i_start)
-                print("Last zero:", lastz)
-                print("i:", i)
-                print("First one:", first_one)
-                print("Max i:", max_i)
-
             while i <= max_i:
-                if clue == ze_clue:
-                    print("STARTING BIG LOOP WITH i:", i)
-
-
                 while self.get(x, i, transpose) == 1:
                     i += 1
                     if i == max_i + 1:
                         if self.get(x, i, transpose) == 1:
+                            other_cache[key] = (None, i_start)
                             return None
                         else:
                             tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
                             if tail:
-                                return [i - c] + tail
+                                res = [i - c] + tail
+                                other_cache[key] = (res, i_start)
+                                return res
                             else:
+                                other_cache[key] = (None, i_start)
                                 return None
-
-                if clue == ze_clue:
-                    print("ROUND OF ONES DONE")
-                    print(i)
-
 
                 v = self.get(x, i, transpose)
                 if v in [0, 2]:
@@ -346,89 +239,45 @@ class Nonogram:
 
                         tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
 
-                        if clue == ze_clue:
-                            print("Right after round of ones, found candidate and got:", tail)
-
                         if tail:
-                            return [i - c] + tail
+                            res = [i - c] + tail
+                            other_cache[key] = (res, i_start)
+                            return res
 
                     if v == 0:
+                        other_cache[key] = (None, i_start)
                         return None
 
                 while i <= lastz + c:
                     if self.get(x, i, transpose) == 0 or i == max_i + 1:
+                        other_cache[key] = (None, i_start)
                         return None
 
                     i += 1
 
-
-                if clue == ze_clue:
-                    print("In the last part of the loop with i:", i)
-
-
-                # i += 1
                 v = self.get(x, i, transpose)
 
                 if v in [0, 2]:
                     tail = self.left_most(x, M, clue, boundary, transpose, i + 1, idx + 1)
 
-                    if clue == ze_clue:
-                        print("In the last loop, found candidate and got:", tail)
-
                     if tail:
-                        return [i - c] + tail
+                        res = [i - c] + tail
+                        other_cache[key] = (res, i_start)
+                        return res
                     elif v == 0:
+                        other_cache[key] = (None, i_start)
                         return None
                     else:
                         i += 1
-                        # ACTUALLY STILL AN ISSUE HERE NEED TO FIND THE FIRST ONE
 
                 else:
                     continue
 
 
 
+            other_cache[key] = (None, i_start)
             return None
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            # i0 = max(bl, i_start)
-            # while i0 <= bh and res is None:
-                # if all(self.get(x, i, transpose) >= 1 for i in range(i0, i0 + c)):
-                    # if self.get(x, i0 + c, transpose) in [0, 2]:
-                        # tail = self.left_most(x, M, clue, boundary, transpose, i0 + c + 1, idx + 1)
-                        # if tail:
-                            # res = [i0] + tail
-
-                # if self.get(x, i0, transpose) == 1:
-                    # break
-                # else:
-                    # i0 += 1
-
-
-        return res
 
 
     def right_most(self, x, M, clue, boundary, transpose, i_start, idx):
@@ -462,58 +311,26 @@ class Nonogram:
         rows, cols = self.changed_rows, self.changed_cols
         self.reset_changed()
 
-        # l = sorted([(self.row_set[x], x) for x in rows])
-        # print("============================")
-        # print("============================")
-        # print(rows)
-        # print(l)
-
-        # rows = []
-        # for prio, x in l:
-            # if prio < self.M:
-                # rows.append(x)
-
-
         for clues, boundaries, transpose, the_rows, M, rs in [(self.rowclues, self.rowboundaries, False, rows, self.M, self.row_set), (self.colclues, self.colboundaries, True, cols, self.N, self.col_set)]:
             for x in the_rows:
                 clue = clues[x]
                 boundary = boundaries[x]
 
                 if len(clue) == 0:
-                    continue   # Nothing to learn
+                    for i in range(0, M):
+                        self.set(x, i, 0, transpose)
 
-                line = str(sum(i * s for i, s in zip([self.get(x, i, transpose) for i in range(0, M)], threes)))
+                    continue
+
+                line = ''.join(str(self.get(x, i, transpose)) for i in range(0, M))
                 line += '  -  ' + '.'.join(str(c) for c in clue)
-
-                # print("==============", transpose, x)
-                # self.print()
-
 
                 cached = False
                 if line in cache:
                     cached = True
                     left, right = cache[line]
                 else:
-
-                    if clue == ze_clue:
-                        print("=======================================")
-                        print("=======================================")
-                        print("=======================================")
-
-                        print([self.get(x, i, transpose) for i in range(0, M)])
-                        print(clue)
-                        print(boundary)
-
-                        print('-----------')
-
-
-
                     left = self.left_most(x, M, clue, boundary, transpose, 0, 0)
-
-
-                    if clue == ze_clue:
-                        print(left)
-
 
                     if left is None:
                         raise ValueError("Wrong guess earlier")
@@ -521,27 +338,6 @@ class Nonogram:
                     right = self.right_most(x, M, clue, boundary, transpose, M - 1, len(clue) - 1)
                     cache[line] = (left, right)
 
-
-                # TODO: FIX
-
-                # print("===========================")
-                # print(clue)
-                # print(boundary)
-                # print(left)
-                # print(right)
-
-
-                # if left is not None and right is not None:
-                    # boundaries[x] = [(l, r) for l, r in zip(left, right)]
-                    # print("==================================")
-                    # print("==================================")
-                    # print(boundaries[x])
-
-
-                    # print(boundaries[x])
-
-                    # for i, (l, r) in enumerate(zip(left, right)):
-                        # boundaries[x][i] = (l, r)
 
                 for l, r, c in zip(left, right, clue):
                     for i in range(max(l, r), min(l, r) + c):
@@ -575,69 +371,12 @@ class Nonogram:
         return res
 
 
-    # Actually worse than before, let's check if it's because it's buggy or a bad idea
-    def next_guess(self):
-        # row = 0
-        # current = self.row_set[0] + sum(self.rowclues[0]) + len(self.rowclues[0])
-        # for x in range(1, self.N):
-            # if self.M > self.row_set[x] and self.row_set[x] + sum(self.rowclues[x]) + len(self.rowclues[x]) > current:
-                # row = x
-                # current = self.row_set[x] + sum(self.rowclues[x]) + len(self.rowclues[x])
-
-        # col = None
-        # for y in range(0, self.M):
-            # if self.N > self.col_set[y] and self.col_set[y] + sum(self.colclues[y]) + len(self.colclues[y]) > current:
-                # col = y
-                # current = self.col_set[y] + sum(self.colclues[y]) + len(self.colclues[y])
-
-        # if col:
-            # for x in range(0, self.N):
-                # if self.grid[x][col] == 2:
-                    # return (x, col)
-        # else:
-            # for y in range(0, self.M):
-                # if self.grid[row][y] == 2:
-                    # return (row, y)
-
-        # raise ValueError("EEEE")
-
-
-        for xu in range(0, self.N):
-            if self.row_set[xu] < self.M:
-                break
-
-        for xb in range(self.N - 1, -1, -1):
-            if self.row_set[xb] < self.M:
-                break
-
-        x0 = xu if self.row_set[xu] > self.row_set[xb] else xb
-
-        for yu in range(0, self.M):
-            if self.col_set[yu] < self.N:
-                break
-
-        for yb in range(self.M - 1, -1, -1):
-            if self.col_set[yb] < self.N:
-                break
-
-        y0 = yu if self.col_set[yu] > self.col_set[yb] else yb
-
-        if self.row_set[x0] > self.col_set[y0]:
-            for y in range(0, self.M):
-                if self.grid[x0][y] == 2:
-                    return (x0, y)
-
-        else:
-            for x in range(0, self.N):
-                if self.grid[x][y0] == 2:
-                    return (x, y0)
-
-
     def guess(self):
         done = False
+
         for x in range(0, self.N):
             for y in range(0, self.M):
-                if self.grid[x][y] == 2:
+                if self.grid[x][y] == 2 and len(self.rowclues[x]) > 0 and len(self.colclues[y]) > 0:
                     done = True
                 if done:
                     break
@@ -654,6 +393,7 @@ class Nonogram:
             except:
                 continue   # Wrong guess
 
+
             if n.todo == 0:
                 return n.grid
 
@@ -664,7 +404,7 @@ class Nonogram:
         return None
 
 
-def solve(clues):
+def solve(clues, w, h):
     n = Nonogram(clues)
     return n.solve()
 
@@ -752,59 +492,56 @@ clues = (((25,), (1, 1), (1, 2, 1), (1, 3, 1), (1, 5, 1), (1, 5, 1), (1, 7, 1), 
 
 
 
+# clues = (((2, 11), (3, 10), (6, 11), (3, 2, 10), (4, 1, 1, 5, 1), (5, 2, 2, 2, 2), (3, 1, 4, 3, 1), (1, 1, 2, 7), (4, 2, 6), (1, 2, 1, 5), (2, 1, 1, 2, 2), (1, 1, 5, 4, 4), (1, 4, 1, 4, 4), (1, 1, 4, 2, 11), (1, 11, 3), (2, 1, 9), (1, 1, 8, 4), (2, 5, 2, 5, 1), (6, 1, 2, 1), (7, 1, 1, 1, 1), (3, 3, 1, 1, 3), (1, 3, 4, 4, 2, 2), (4, 7, 1, 1), (5, 3, 3, 1, 1), (5, 1, 2, 1, 2)), ((3, 3, 1, 3), (3, 3, 1, 1, 4), (6, 1, 1, 2, 3), (4, 1, 1, 8), (4, 2, 7, 2), (1, 2, 3, 1), (4, 5), (3, 3, 4, 1, 1), (1, 1, 1, 1, 7), (4, 2, 1, 4), (1, 4, 3, 4), (1, 1, 1, 1, 5, 1), (6, 2, 6, 4), (5, 1, 3, 1, 4), (1, 1, 1, 5, 1, 5), (4, 8, 1, 1), (6, 9), (4, 1, 1, 6), (5, 2, 5), (9, 2, 1), (10, 2, 4, 1), (5, 3, 3, 3, 1), (5, 4, 4, 1), (4, 8, 2, 1), (5, 8, 1, 1, 1)))
+
+
+
+clues = (((10,), (10,), (10,), (10,), (3, 4, 26), (3, 4, 26), (3, 31), (18, 2, 3), (19, 2, 3), (5, 6, 2, 3), (5, 6, 2, 3), (3, 6, 6, 2, 3), (3, 6, 6, 2, 3), (3, 4, 11, 3), (3, 4, 11, 3), (8, 10, 7, 3), (8, 10, 8, 3), (8, 10, 10), (8, 10, 10), (8, 10, 10), (8, 5, 10), (12, 10), (12, 17), (7, 3, 17), (7, 3, 12), (14, 3, 12), (14, 3, 3, 6), (14, 3, 3, 6, 1), (14, 3, 3, 6), (19, 1, 3, 6), (19, 3, 6), (4, 10, 12), (4, 10, 12), (4, 10, 12), (4, 29), (12, 14), (12, 1, 6, 4, 2), (12, 6, 4, 4), (12, 2, 6, 4, 4, 1), (12, 3, 6, 4, 3, 1), (12, 3, 6, 4, 2, 1), (12, 3, 14, 2, 1), (12, 1, 14, 1, 1), (12, 1, 1, 14, 4), (12, 1, 14, 4), (1, 1), (5,), (5,)), ((10,), (10,), (7, 10, 20), (7, 10, 20), (7, 10, 20), (4, 6, 20), (4, 6, 6, 10), (4, 6, 6, 10), (7, 10, 6, 10), (7, 23, 10), (15, 10, 10), (20, 24), (7, 5, 14), (9, 5, 14), (5, 20, 4, 1), (5, 20, 1, 4), (5, 8, 6, 9), (5, 8, 6, 2), (5, 20, 2), (5, 5, 22, 3), (5, 5, 22, 2), (5, 11), (11, 1, 11), (11, 7, 11), (11, 7, 11), (11, 8, 2, 4), (20, 2, 4), (20, 2, 4), (3, 23, 4), (3, 32), (3, 32), (22, 14), (22, 14), (3, 4, 4, 2), (3, 13, 2), (13, 13, 1, 3), (13, 13, 6), (13, 13, 4, 2), (3, 13, 3, 2), (13, 1, 2), (7,), (1,)))
+
+
+clues = (((3,), (4, 3), (32,), (32,), (32,), (5, 19), (5, 4, 5, 8), (5, 1, 3, 8), (5, 1, 9), (2, 1, 9), (2, 1, 12), (2, 8, 6), (5, 8, 6), (21, 7), (21, 7), (21, 7), (33,), (6, 1, 3), (7, 21), (7, 21), (3, 1, 12, 4), (3, 9, 1, 4, 4), (2, 3, 19), (22, 10), (13, 3, 10), (2, 4, 3, 10), (2, 4, 7, 3), (2, 2, 1, 7, 3), (2, 4, 7, 3), (2, 9, 4, 3), (3, 1, 4, 3), (10, 1, 4, 3), (3, 3, 11), (2, 3, 3, 11), (2, 1, 3, 12)), ((4, 7), (4, 7), (7, 5, 4, 2, 1), (7, 5, 2, 2, 1), (7, 5, 2, 2, 1), (15, 2, 2, 1), (21, 2, 1), (4, 5, 1, 2, 1), (4, 5, 4, 1, 2), (4, 5, 11, 2), (3, 5, 1, 9), (3, 9, 4, 6), (3, 4, 12, 2), (3, 4, 6, 6), (3, 11, 1), (15, 3, 1, 1), (5, 13, 1), (5, 10, 2, 1), (5, 13), (4, 6, 11, 3), (5, 6, 11, 3), (5, 6, 11, 3), (15, 3, 1, 6), (9, 1, 2, 1, 6, 1), (9, 1, 2, 1, 9), (4, 3, 1, 2, 13), (9, 1, 2, 4, 3), (9, 1, 2, 4, 3), (15, 8, 3), (15, 8, 3), (15, 8, 3), (8, 7, 8, 3), (8, 7, 13), (8, 7, 13), (4, 13)))
+
+
+
+clues = (((2, 2), (2, 5, 3), (5, 7, 3), (2, 7), (2, 2, 2, 2, 1), (2, 7, 2, 4, 2), (2, 4, 2, 2, 4, 2), (4, 2, 2, 7, 2), (2, 4, 2, 2, 7, 2), (2, 2, 2, 2, 1, 4, 1), (2, 2, 2, 2, 2, 1, 1, 1), (2, 3, 2, 1, 1), (2, 3, 2, 1, 1), (15, 4, 1), (7, 8, 4, 1), (7, 8, 4), (7, 8, 4), (6, 2, 3), (6, 2, 3, 8, 4), (6, 6, 8, 4), (1, 4, 6, 15), (1, 4, 3, 15), (1, 4, 3, 14), (13, 3, 14), (16, 4, 8), (22, 2), (4, 2, 3, 11), (4, 7, 11, 3), (4, 7, 6, 3, 3), (4, 7, 6, 3, 3), (2, 12, 3), (1, 12, 3), (1, 3), (4, 3), (3,)), ((4,), (4,), (4, 7), (3, 4, 7), (3, 4, 10), (2, 4, 8), (2, 13, 1), (1, 3, 3, 1), (2, 9, 13, 1), (2, 9, 13, 1), (4, 1, 9, 3), (2, 4, 13, 3), (2, 1, 6, 7), (2, 16, 7), (2, 16, 7), (2, 3, 2, 2), (12, 2), (1, 8, 18), (1, 8, 10, 7), (7,), (14,), (3, 14), (15, 14), (7, 4, 10, 2), (2, 4, 4, 6, 2, 2), (7, 4, 6, 6), (3, 2, 14), (2, 7, 14), (3, 3, 1, 5), (1, 1, 5), (2, 8, 5), (2, 4, 7, 8), (2, 2, 7, 8), (7, 8), (1, 4)))
+
+clues = (((7,), (5,), (3,), (3,), (1,), (1,), (), (2, 1, 2, 2, 7), (3, 1, 3, 3, 7), (5, 1, 8, 7), (5, 8, 1, 4), (4, 6, 3), (2, 2, 1), (), (), (1, 2, 1), (2, 3), (1, 3), (2, 1), (1, 2), (1, 2, 1), (2, 3, 1), (2, 1, 1), (), (2, 2, 2, 2, 2, 2), (2, 2, 2, 2, 2, 2), (5, 5, 5), (3, 3, 3), (5, 5, 5), (3, 3, 2, 1, 2, 3, 3), (5, 5, 5), (), (9,), (2, 1, 1, 1, 2), (9,)), ((6, 1), (6, 2, 1, 1, 1), (4, 1, 2, 3, 3), (3, 5, 1, 5), (2, 1, 3, 1), (1, 1, 1, 2, 1, 5), (2, 6, 3, 3), (4, 3, 2, 1, 1), (6, 3, 1, 1), (4,), (2, 4), (1, 5, 1), (4, 2, 1), (4, 2, 3), (4, 3, 1), (4, 3, 5), (5, 3, 1), (4, 2, 3, 1), (2, 1, 3), (1, 1, 1), (3,), (1, 1), (3,), (4, 1, 1, 1, 1), (3, 3, 3, 3), (3, 1, 5, 1, 1), (4, 3, 1, 3), (6, 1, 5, 1), (5, 3, 3), (5, 1, 1)))
+
+
+
+def launch():
+    start = time()
+
+    n = Nonogram(clues)
+
+    res = n.solve()
+
+    print(n.row_set)
+    print(n.col_set)
+
+    print("===================== RESULT")
+
+
+    print(res)
+
+
+    print("=============================================")
+    print("=============================================")
+
+    print('\n'.join([' '.join(['[]' if c == 1 else ('x ' if c == 0 else '. ') for c in l]) for x, l in enumerate(res)]))
 
 
 
 
 
+    print("==> Duration:", time() - start)
 
 
 
+launch()
 
 
-
-
-
-
-
-start = time()
-
-n = Nonogram(clues)
-
-res = n.solve()
-
-print(n.row_set)
-print(n.col_set)
-
-print("===================== RESULT")
-
-
-
-# print(n.N, n.M)
-
-# for x, c in enumerate(n.rowclues):
-    # print(x, c)
-
-# for o in n.order:
-    # print(o)
-# print(n.rowclues)
-# print(n.order)
-
-# print("===========================")
-# while True:
-    # o = heapq.heappop(n.order)
-    # print(o)
-
-t.print_events()
-
-
-print(res)
-# n.print()
-
-
-
-
-print("==> Duration:", time() - start)
-
+# import cProfile
+# cProfile.run('launch()')
 
 
