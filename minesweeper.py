@@ -115,24 +115,22 @@ n_mines = sum([sum([1 if c == 'x' else 0 for c in l]) for l in solution])
 deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 def open(x, y):
     if solution is not None:
         if solution[x][y] == 'x':
             raise ValueError("Boom")
         else:
             return solution[x][y]
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -170,10 +168,34 @@ def solve_mine(map, n):
     print('\n'.join([' '.join([str(c) for c in l]) for l in map]))
 
 
+    while len(todo) > 0:
+        x, y = todo.pop(0)
+        v = map[x][y]
+
+        # Touching the same number of cells as remaining neighbour mines
+        neighbours = 0
+        mines = 0
+        for dx, dy in deltas:
+            if 0 <= x + dx < N and 0 <= y + dy < M:
+                if map[x + dx][y + dy] == '?':
+                    neighbours += 1
+                elif map[x + dx][y + dy] == 'x':
+                    mines += 1
+
+        # print("======================")
+        # print(x, y)
+        # print(neighbours)
+        # print(mines)
+
+        if neighbours != 0 and neighbours + mines == v:
+            for dx, dy in deltas:
+                if 0 <= x + dx < N and 0 <= y + dy < M:
+                    if map[x + dx][y + dy] == '?':
+                        map[x + dx][y + dy] = 'x'
 
 
-
-
+    print("=================================")
+    print('\n'.join([' '.join([str(c) for c in l]) for l in map]))
 
 
 
