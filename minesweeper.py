@@ -128,74 +128,94 @@ def open(x, y):
 
 
 
+class Game():
+    def __init__(self, map, n_mines):
+        self.map = [[int(c) if c != '?' else '?' for c in l.split(' ')] for l in map.split('\n')]
+        self.N, self.M = len(self.map), len(self.map[0])
+        self.remaining_mines = n_mines
+
+        self.todo_zeroes = list()
+        self.todo_simple = list()
+        self.todo_merge = list()
+
+        # Assuming we never get anything else than zeroes as hints initially
+        for x in range(0, self.N):
+            for y in range(0, self.M):
+                if self.map[x][y] == 0:
+                    self.todo_zeroes.append((x, y))
+
+    def print(self):
+        print("=================================")
+        print('\n'.join([' '.join([str(c) if str(c) != '?' else '.' for c in l]) for l in self.map]))
+
+
+    def explore_zeroes(self):
+        while len(self.todo_zeroes) > 0:
+            x, y = self.todo_zeroes.pop(0)
+            for dx, dy in deltas:
+                if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                    if self.map[x + dx][y + dy] == '?':
+                        v = open(x + dx, y + dy)
+                        self.map[x + dx][y + dy] = v
+                        if v == 0:
+                            self.todo_zeroes.append((x + dx, y + dy))
+                        else:
+                            self.todo_simple.append((x + dx, y + dy))
+                            # TODO: should we also add to the complex analysis? Probably yes
+
+
+    def deduce_simple(self):
+        while len(self.todo_simple) > 0:
+            x, y = self.todo_simple.pop(0)
+            v = self.map[x][y]
+
+            # Touching the same number of cells as remaining neighbour mines
+            opened = 0
+            mines = 0
+            for dx, dy in deltas:
+                if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                    if self.map[x + dx][y + dy] == '?':
+                        opened += 1
+                    elif self.map[x + dx][y + dy] == 'x':
+                        mines += 1
+
+            if opened != 0 and opened + mines == v:
+                for dx, dy in deltas:
+                    if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                        if self.map[x + dx][y + dy] == '?':
+                            self.map[x + dx][y + dy] = 'x'
+                            self.remaining_mines -= 1
+
+
+    def deduce(self):
+        self.explore_zeroes()
+
+        self.print()
+
+        self.deduce_simple()
 
 
 
+    def solve(self):
+        self.deduce()
+
+        # TODO: we will likely need some logic at the end of the game, based on the number of mines remaining
 
 
 
 
 
 def solve_mine(map, n):
-    map = [[int(c) if c != '?' else '?' for c in l.split(' ')] for l in map.split('\n')]
-    N, M = len(map), len(map[0])
-
-    print("=================================")
-    print('\n'.join([' '.join([str(c) for c in l]) for l in map]))
-
-    todo_z = list()
-    todo = list()
-
-    # Assuming we never get anything else than zeroes as hints initially
-    for x in range(0, N):
-        for y in range(0, M):
-            if map[x][y] == 0:
-                todo_z.append((x, y))
-
-    while len(todo_z) > 0:
-        x, y = todo_z.pop(0)
-        for dx, dy in deltas:
-            if 0 <= x + dx < N and 0 <= y + dy < M and map[x + dx][y + dy] == '?':
-                v = open(x + dx, y + dy)
-                map[x + dx][y + dy] = v
-                if v == 0:
-                    todo_z.append((x + dx, y + dy))
-                else:
-                    todo.append((x + dx, y + dy))
+    game = Game(map, n)
+    game.solve()
 
 
-    print("=================================")
-    print('\n'.join([' '.join([str(c) for c in l]) for l in map]))
 
 
-    while len(todo) > 0:
-        x, y = todo.pop(0)
-        v = map[x][y]
-
-        # Touching the same number of cells as remaining neighbour mines
-        neighbours = 0
-        mines = 0
-        for dx, dy in deltas:
-            if 0 <= x + dx < N and 0 <= y + dy < M:
-                if map[x + dx][y + dy] == '?':
-                    neighbours += 1
-                elif map[x + dx][y + dy] == 'x':
-                    mines += 1
-
-        # print("======================")
-        # print(x, y)
-        # print(neighbours)
-        # print(mines)
-
-        if neighbours != 0 and neighbours + mines == v:
-            for dx, dy in deltas:
-                if 0 <= x + dx < N and 0 <= y + dy < M:
-                    if map[x + dx][y + dy] == '?':
-                        map[x + dx][y + dy] = 'x'
 
 
-    print("=================================")
-    print('\n'.join([' '.join([str(c) for c in l]) for l in map]))
+
+
 
 
 
@@ -203,7 +223,14 @@ def solve_mine(map, n):
 
 t.reset()
 
-solve_mine(map, n_mines)
+# solve_mine(map, n_mines)
+
+game = Game(map, n_mines)
+game.print()
+
+game.deduce()
+game.print()
+
 
 t.time("Algo done")
 
