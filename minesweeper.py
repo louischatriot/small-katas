@@ -124,6 +124,33 @@ def open(x, y):
             return solution[x][y]
 
 
+# Each 3x3 square represented by a unique number whose binary representation says
+# where there are mines
+# e.g. 105 is 0b001101001 meaning 0 0 1
+#                                 1 0 1
+#                                 0 0 1  --> center touches 4 mines
+squares = [i for i in range(0, 2**9)]
+np = len(squares)
+
+def rep(n):
+    msg = str(bin(n))[2:]
+    while len(msg) < 9:
+        msg = '0' + msg
+    msg = ''.join(['.' if c == '0' else 'x' for c in msg])
+    msg = msg[0:3] + '\n' + msg[3:6] + '\n' + msg[6:9]
+    return msg
+
+next_r = [[((i & 0b011011011) << 1) + o1 * 0b001000000 + o2 * 0b000001000 + o3 * 0b000000001 for o1 in [0, 1] for o2 in [0, 1] for o3 in [0, 1]] for i in range(0, np)]
+next_b = [[((i & 0b000111111) << 3) + o for o in range(0, 8)] for i in range(0, np) ]
+
+
+
+
+
+
+
+
+
 
 
 
@@ -147,6 +174,7 @@ class Game():
             for y in range(0, self.M):
                 if self.map[x][y] == 0:
                     self.todo_zeroes.append((x, y))
+
 
     def print(self):
         print("=================================")
@@ -227,9 +255,6 @@ class Game():
 
     def deduce(self):
         self.explore_zeroes()
-
-        self.print()
-
         self.deduce_simple()
 
 
@@ -237,7 +262,8 @@ class Game():
     def solve(self):
         self.deduce()
 
-        # TODO: we will likely need some logic at the end of the game, based on the number of mines remaining
+
+
 
 
 
