@@ -138,6 +138,8 @@ class Game():
         self.todo_simple = list()
         self.todo_merge = list()
 
+        self.done_simple = set()
+
         # Assuming we never get anything else than zeroes as hints initially
         for x in range(0, self.N):
             for y in range(0, self.M):
@@ -164,27 +166,61 @@ class Game():
                             # TODO: should we also add to the complex analysis? Probably yes
 
 
+    # Add every neighbour of this newly uncovered mine to the list
+    def add_neighbours(self, x, y, todo, done):
+        for dx, dy in deltas:
+            nx, ny = x + dx, y + dy
+
+            if 0 <= nx < self.N and 0 <= ny < self.M:
+                if self.map[nx][ny] != '?' and (nx, ny) not in done:
+                    todo.append((nx, ny))
+
+
     def deduce_simple(self):
         while len(self.todo_simple) > 0:
             x, y = self.todo_simple.pop(0)
+            if (x, y) in self.done_simple:
+                continue
+
             v = self.map[x][y]
 
             # Touching the same number of cells as remaining neighbour mines
-            opened = 0
+            unopened = 0
             mines = 0
             for dx, dy in deltas:
                 if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                     if self.map[x + dx][y + dy] == '?':
-                        opened += 1
+                        unopened += 1
                     elif self.map[x + dx][y + dy] == 'x':
                         mines += 1
 
-            if opened != 0 and opened + mines == v:
+            # All squares touching this one are mines
+            if unopened != 0 and unopened + mines == v:
+                self.done_simple.add((x, y))
+
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
                             self.map[x + dx][y + dy] = 'x'
                             self.remaining_mines -= 1
+
+                            self.add_neighbours(x + dx, y + dy, self.todo_simple, self.done_simple)
+
+
+            # All squares touching this one are empty
+            if unopened != 0 and mines == v:
+                self.done_simple.add((x, y))
+
+                for dx, dy in deltas:
+                    if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                        if self.map[x + dx][y + dy] == '?':
+                            v = open(x + dx, y + dy)
+                            self.map[x + dx][y + dy] = v
+
+                            # TODO: Does not work
+                            self.add_neighbours(x + dx, y + dy, self.todo_simple, self.done_simple)
+
+
 
 
     def deduce(self):
