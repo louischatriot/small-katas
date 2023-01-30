@@ -106,6 +106,7 @@ small_res = """
 
 
 
+
 map = small_map
 res = small_res
 solution = [[int(c) if c != 'x' else 'x' for c in l.split(' ')] for l in res.split('\n')]
@@ -138,6 +139,7 @@ class Game():
         self.todo_simple = list()
         self.todo_merge = list()
 
+        # TODO: checking off strategy is very basic and could make the algorithm much faster
         self.done_simple = set()
 
         # Assuming we never get anything else than zeroes as hints initially
@@ -179,6 +181,7 @@ class Game():
     def deduce_simple(self):
         while len(self.todo_simple) > 0:
             x, y = self.todo_simple.pop(0)
+
             if (x, y) in self.done_simple:
                 continue
 
@@ -216,9 +219,8 @@ class Game():
                         if self.map[x + dx][y + dy] == '?':
                             v = open(x + dx, y + dy)
                             self.map[x + dx][y + dy] = v
+                            self.todo_simple.append((x + dx, y + dy))
 
-                            # TODO: Does not work
-                            self.add_neighbours(x + dx, y + dy, self.todo_simple, self.done_simple)
 
 
 
@@ -266,6 +268,7 @@ game.print()
 
 game.deduce()
 game.print()
+print(game.remaining_mines)
 
 
 t.time("Algo done")
