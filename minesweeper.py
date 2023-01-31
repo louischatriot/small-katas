@@ -162,18 +162,18 @@ class Game():
         self.N, self.M = len(self.map), len(self.map[0])
         self.remaining_mines = n_mines
 
-        self.todo_zeroes = list()
-        self.todo_simple = list()
-        self.todo_merge = list()
+        self.todo_zeroes = set()
+        self.todo_simple = set()
+        self.todo_merge = set()
 
         # TODO: checking off strategy is very basic and could make the algorithm much faster
-        self.done_simple = set()
+        self.done = set()
 
         # Assuming we never get anything else than zeroes as hints initially
         for x in range(0, self.N):
             for y in range(0, self.M):
                 if self.map[x][y] == 0:
-                    self.todo_zeroes.append((x, y))
+                    self.todo_zeroes.add((x, y))
 
 
     def print(self):
@@ -183,34 +183,36 @@ class Game():
 
     def explore_zeroes(self):
         while len(self.todo_zeroes) > 0:
-            x, y = self.todo_zeroes.pop(0)
+            x, y = self.todo_zeroes.pop()
+
+            self.done.add((x, y))
+
             for dx, dy in deltas:
                 if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                     if self.map[x + dx][y + dy] == '?':
                         v = open(x + dx, y + dy)
                         self.map[x + dx][y + dy] = v
                         if v == 0:
-                            self.todo_zeroes.append((x + dx, y + dy))
+                            self.todo_zeroes.add((x + dx, y + dy))
                         else:
-                            self.todo_simple.append((x + dx, y + dy))
-                            # TODO: should we also add to the complex analysis? Probably yes
+                            self.todo_simple.add((x + dx, y + dy))
 
 
     # Add every neighbour of this newly uncovered mine to the list
-    def add_neighbours(self, x, y, todo, done):
+    def add_neighbours(self, x, y, todo):
         for dx, dy in deltas:
             nx, ny = x + dx, y + dy
 
             if 0 <= nx < self.N and 0 <= ny < self.M:
-                if self.map[nx][ny] != '?' and (nx, ny) not in done:
-                    todo.append((nx, ny))
+                if self.map[nx][ny] != '?' and (nx, ny) not in self.done:
+                    todo.add((nx, ny))
 
 
     def deduce_simple(self):
         while len(self.todo_simple) > 0:
-            x, y = self.todo_simple.pop(0)
+            x, y = self.todo_simple.pop()
 
-            if (x, y) in self.done_simple:
+            if (x, y) in self.done:
                 continue
 
             v = self.map[x][y]
@@ -227,7 +229,7 @@ class Game():
 
             # All squares touching this one are mines
             if unopened != 0 and unopened + mines == v:
-                self.done_simple.add((x, y))
+                self.done.add((x, y))
 
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
@@ -235,21 +237,46 @@ class Game():
                             self.map[x + dx][y + dy] = 'x'
                             self.remaining_mines -= 1
 
-                            self.add_neighbours(x + dx, y + dy, self.todo_simple, self.done_simple)
+                            self.add_neighbours(x + dx, y + dy, self.todo_simple)
 
+                continue
 
             # All squares touching this one are empty
             if unopened != 0 and mines == v:
-                self.done_simple.add((x, y))
+                self.done.add((x, y))
 
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
                             v = open(x + dx, y + dy)
                             self.map[x + dx][y + dy] = v
-                            self.todo_simple.append((x + dx, y + dy))
+                            self.todo_simple.add((x + dx, y + dy))
+
+                continue
+
+            # Could not make a simple deduction, adding to merge deductions list
+            self.todo_merge.add((x, y))
 
 
+    def deduce_merge(self):
+        # Here we don't want to stay here as much as possible but rather do one deduction then get back to simple ones to save time
+        for x, y in self.todo_merge:
+            if (x, y) in self.done:
+                continue
+
+            # We may still get fully done squares here, if done through another square
+            unopened = 0
+            for dx, dy in deltas:
+                if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                    if self.map[x + dx][y + dy] == '?':
+                        unopened += 1
+
+            if unopened == 0:
+                self.done.add((x, y))
+                continue
+
+
+            print(x, y)
 
 
 
@@ -257,6 +284,9 @@ class Game():
         self.explore_zeroes()
         self.deduce_simple()
 
+        self.print()
+
+        self.deduce_merge()
 
 
     def solve(self):
