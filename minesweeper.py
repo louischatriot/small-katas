@@ -113,6 +113,7 @@ solution = [[int(c) if c != 'x' else 'x' for c in l.split(' ')] for l in res.spl
 n_mines = sum([sum([1 if c == 'x' else 0 for c in l]) for l in solution])
 
 
+full_deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
 deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
 
 
@@ -140,8 +141,25 @@ def rep(n):
     msg = msg[0:3] + '\n' + msg[3:6] + '\n' + msg[6:9]
     return msg
 
-next_r = [[((i & 0b011011011) << 1) + o1 * 0b001000000 + o2 * 0b000001000 + o3 * 0b000000001 for o1 in [0, 1] for o2 in [0, 1] for o3 in [0, 1]] for i in range(0, np)]
-next_b = [[((i & 0b000111111) << 3) + o for o in range(0, 8)] for i in range(0, np) ]
+def mines_in(n):
+    return sum([1 if d == '1' else 0 for d in bin(n)])
+
+
+next_r = [set([((i & 0b011011011) << 1) + o1 * 0b001000000 + o2 * 0b000001000 + o3 * 0b000000001 for o1 in [0, 1] for o2 in [0, 1] for o3 in [0, 1]]) for i in range(0, np)]
+next_b = [set([((i & 0b000111111) << 3) + o for o in range(0, 8)]) for i in range(0, np) ]
+
+
+center_mine = 0b10000
+center = dict()
+
+for n in range(0, np):
+    if n & center_mine == 0:
+        nm = mines_in(n)
+        if nm not in center:
+            center[nm] = set()
+        center[nm].add(n)
+
+
 
 
 
@@ -258,6 +276,19 @@ class Game():
             self.todo_merge.add((x, y))
 
 
+    def mine_pattern(self, x, y):
+        mines = 0
+        unopened = 2 ** 9 - 1
+        for dx, dy in full_deltas:
+            if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                if self.map[x + dx][y + dy] == 'x':
+                    mines += 2 ** (8 - 3 * (dx + 1) - (dy + 1))
+                elif self.map[x + dx][y + dy] == '?':
+                    unopened -= 2 ** (8 - 3 * (dx + 1) - (dy + 1))
+
+        return mines, unopened
+
+
     def deduce_merge(self):
         # Here we don't want to stay here as much as possible but rather do one deduction then get back to simple ones to save time
         for x, y in self.todo_merge:
@@ -277,6 +308,27 @@ class Game():
 
 
             print(x, y)
+
+
+
+        print("======================")
+
+        path = [(1, 1), (1, 2), (1, 3)]
+
+        pos = [set()]
+
+
+        x0, y0 = path[0]
+        _initial = center[self.map[x0][y0]]
+        mines, unopened = self.mine_pattern(x0, y0)
+        for n in _initial:
+            if unopened & n == mines:
+                pos[0].add(n)
+                print("------------")
+                print(rep(n))
+
+
+
 
 
 
