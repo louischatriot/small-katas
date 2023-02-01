@@ -159,7 +159,15 @@ def print_path(p):
         msg = ''.join(['.' if c == '0' else 'x' for c in msg])
         msgs.append(msg)
 
-    res = '\n'.join(['   '.join([msg[3 * i:3 * (i+1)] for msg in msgs]) for i in range(0, 3)])
+
+    res = ''
+    for i in range(0, 3):
+        line = msgs[0][3 * i:3 * (i+1)] + ''.join([msgs[m][3 * (i+1) - 1] for m in range(1, len(msgs))])
+        res += line + '\n'
+
+
+
+    # res = '\n'.join(['   '.join([msg[3 * i:3 * (i+1)] for msg in msgs]) for i in range(0, 3)])
     print('--------------------------------------------------------------------------')
     print(res)
     print('--------------------------------------------------------------------------')
@@ -334,7 +342,7 @@ class Game():
 
         print("======================")
 
-        path = [(1, 1), (1, 2), (1, 3)]
+        path = [(1, 1), (1, 2), (1, 3), (1, 4)]
 
         pos = []
 
