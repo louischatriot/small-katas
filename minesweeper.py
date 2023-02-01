@@ -141,8 +141,28 @@ def rep(n):
     msg = msg[0:3] + '\n' + msg[3:6] + '\n' + msg[6:9]
     return msg
 
+def print_square(n):
+    print('---------')
+    print(rep(n))
+    print('---------')
+
 def mines_in(n):
     return sum([1 if d == '1' else 0 for d in bin(n)])
+
+def print_path(p):
+    msgs = []
+
+    for n in p:
+        msg = str(bin(n))[2:]
+        while len(msg) < 9:
+            msg = '0' + msg
+        msg = ''.join(['.' if c == '0' else 'x' for c in msg])
+        msgs.append(msg)
+
+    res = '\n'.join(['   '.join([msg[3 * i:3 * (i+1)] for msg in msgs]) for i in range(0, 3)])
+    print('--------------------------------------------------------------------------')
+    print(res)
+    print('--------------------------------------------------------------------------')
 
 
 next_r = [set([((i & 0b011011011) << 1) + o1 * 0b001000000 + o2 * 0b000001000 + o3 * 0b000000001 for o1 in [0, 1] for o2 in [0, 1] for o3 in [0, 1]]) for i in range(0, np)]
@@ -159,6 +179,7 @@ for n in range(0, np):
             center[nm] = set()
         center[nm].add(n)
 
+# TODO: Need to add case where center itself is a mine
 
 
 
@@ -315,17 +336,85 @@ class Game():
 
         path = [(1, 1), (1, 2), (1, 3)]
 
-        pos = [set()]
-
+        pos = []
 
         x0, y0 = path[0]
         _initial = center[self.map[x0][y0]]
         mines, unopened = self.mine_pattern(x0, y0)
         for n in _initial:
             if unopened & n == mines:
-                pos[0].add(n)
-                print("------------")
-                print(rep(n))
+                pos.append([n])
+                # print("------------")
+                # print(rep(n))
+
+
+        for x, y in path[1:]:
+            # print("=========================")
+            # print(x, y)
+
+
+            next = set()
+
+            _initial = center[self.map[x][y]]
+            mines, unopened = self.mine_pattern(x, y)
+            for n in _initial:
+                if unopened & n == mines:
+                    next.add(n)
+
+
+            current = [(p, p[-1]) for p in pos]
+            # print("==> ALL CURRENTS")
+            # for _, c in current:
+                # print_square(c)
+
+
+
+            # print("==> ALL NEXTS")
+            # for n in next:
+                # print_square(n)
+
+
+
+            for p in pos:
+                c = p[-1]
+
+
+                # print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+                # print_square(c)
+
+                inter = next_r[c].intersection(next)
+
+                # print("==> NEXT ONES")
+
+                for i in inter:
+                    p.append(i)
+
+
+                    # print_square(i)
+
+            print("===> RESULT")
+            print(pos)
+
+        for p in pos:
+            print_path(p)
+
+
+
+
+
+
+
+
+            # print(next)
+            # for n in next:
+                # print('-------------')
+                # print(rep(n))
+
+
+            # for s in d:
+                # print('--------------')
+                # print(rep(s))
+
 
 
 
