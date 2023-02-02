@@ -344,61 +344,34 @@ class Game():
 
         path = [(1, 1), (1, 2), (1, 3), (1, 4)]
 
-        pos = []
+        pos = [[]]
 
-        x0, y0 = path[0]
-        _initial = center[self.map[x0][y0]]
-        mines, unopened = self.mine_pattern(x0, y0)
-        for n in _initial:
-            if unopened & n == mines:
-                pos.append([n])
-                # print("------------")
-                # print(rep(n))
-
-
-        for x, y in path[1:]:
-            # print("=========================")
-            # print(x, y)
+        # x0, y0 = path[0]
+        # _initial = center[self.map[x0][y0]]
+        # mines, unopened = self.mine_pattern(x0, y0)
+        # for n in _initial:
+            # if unopened & n == mines:
+                # pos.append([n])
+                # # print("------------")
+                # # print(rep(n))
 
 
+        for x, y in path:
             next = set()
-
             _initial = center[self.map[x][y]]
             mines, unopened = self.mine_pattern(x, y)
             for n in _initial:
                 if unopened & n == mines:
                     next.add(n)
 
-
-            current = [(p, p[-1]) for p in pos]
-            # print("==> ALL CURRENTS")
-            # for _, c in current:
-                # print_square(c)
-
-
-
-            # print("==> ALL NEXTS")
-            # for n in next:
-                # print_square(n)
-
-
-
+            _pos = []
             for p in pos:
-                c = p[-1]
-
-
-                # print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-                # print_square(c)
-
-                inter = next_r[c].intersection(next)
-
-                # print("==> NEXT ONES")
+                inter = next_r[p[-1]].intersection(next) if len(p) > 0 else next
 
                 for i in inter:
-                    p.append(i)
+                    _pos.append(p + [i])
 
-
-                    # print_square(i)
+            pos = _pos
 
             print("===> RESULT")
             print(pos)
