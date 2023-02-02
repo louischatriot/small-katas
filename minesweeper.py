@@ -149,6 +149,10 @@ def print_square(n):
 def mines_in(n):
     return sum([1 if d == '1' else 0 for d in bin(n)])
 
+def is_cell_mine(n, x, y):
+    mask = 2 ** (8 - 3 * x - y)
+    return mask & n > 0
+
 def print_path(p):
     msgs = []
 
@@ -164,8 +168,6 @@ def print_path(p):
     for i in range(0, 3):
         line = msgs[0][3 * i:3 * (i+1)] + ''.join([msgs[m][3 * (i+1) - 1] for m in range(1, len(msgs))])
         res += line + '\n'
-
-
 
     # res = '\n'.join(['   '.join([msg[3 * i:3 * (i+1)] for msg in msgs]) for i in range(0, 3)])
     print('--------------------------------------------------------------------------')
@@ -385,6 +387,24 @@ class Game():
 
         for p in pos:
             print_path(p)
+
+            mines = []
+            if path[0][1] == 0:
+                mines.append('x' if is_cell_mine(p[0], 0, 1) else '.')
+
+            for i in range(1, len(p) - 1):
+                mines.append('x' if is_cell_mine(p[i], 0, 1) else '.')
+
+            if path[-1][1] == self.M - 1:
+                mines.append('x' if is_cell_mine(p[-1], 0, 1) else '.')
+
+            print(mines)
+
+        # TODO: find common
+        # TODO: get start
+
+
+
 
 
 
