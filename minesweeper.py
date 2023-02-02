@@ -336,9 +336,11 @@ class Game():
 
 
     def deduce_merge(self):
-        # Here we don't want to stay here as much as possible but rather do one deduction then get back to simple ones to save time
+        to_remove = set()
+
         for x, y in self.todo_merge:
             if (x, y) in self.done:
+                to_remove.add((x, y))
                 continue
 
             # We may still get fully done squares here, if done through another square
@@ -350,16 +352,79 @@ class Game():
 
             if unopened == 0:
                 self.done.add((x, y))
+                to_remove.add((x, y))
                 continue
 
 
-            print(x, y)
+        for x, y in to_remove:
+            self.todo_merge.remove((x, y))
 
 
+        for x, y in self.todo_merge:
+            line_u = [(x, y)]
+            line_d = [(x, y)]
+
+            column_l = [(x, y)]
+            column_r = [(x, y)]
+
+            # Ugly code
+            if x > 0:
+                line_u = [(x, y)]
+
+                for yp in range(y-1, -1, -1):
+                    if (x, yp) in self.todo_merge and self.map[x-1][yp] == '?':
+                        # Not optimal
+                        line_u.insert(0, (x, yp))
+                    else:
+                        break
+
+                for yp in range(y+1, self.M):
+                    if (x, yp) in self.todo_merge and self.map[x-1][yp] == '?':
+                        line_u.append((x, yp))
+                    else:
+                        break
+
+            if x < self.N - 1:
+                line_d = [(x, y)]
+
+                for yp in range(y-1, -1, -1):
+                    if (x, yp) in self.todo_merge and self.map[x+1][yp] == '?':
+                        # Not optimal
+                        line_d.insert(0, (x, yp))
+                    else:
+                        break
+
+                for yp in range(y+1, self.M):
+                    if (x, yp) in self.todo_merge and self.map[x+1][yp] == '?':
+                        line_d.append((x, yp))
+                    else:
+                        break
+
+
+            if max(len(line_u), len(line_d)) < 3:
+                # So not optimal as well
+                continue
+
+            line = line_u if len(line_u) > len(line_d) else line_d
+            ox, oy = (0, 1) if len(line_u) > len(line_d) else (2, 1)
+
+
+            # TODO: do the column, then understand which one is the best boundary
+            path = line
+            next_squares = next_r
+
+
+            self.deduce_path(path, next_squares, ox, oy)
+
+
+
+
+
+
+    def deduce_path(self, path, next_squares, ox, oy):
 
         print("======================")
-
-        path = [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]
+        print(path)
 
         pos = [[]]
 
@@ -374,7 +439,7 @@ class Game():
 
             _pos = []
             for p in pos:
-                inter = next_r[p[-1]].intersection(next) if len(p) > 0 else next
+                inter = next_squares[p[-1]].intersection(next) if len(p) > 0 else next
 
                 for i in inter:
                     _pos.append(p + [i])
@@ -390,13 +455,13 @@ class Game():
 
             mines = []
             if path[0][1] == 0:
-                mines.append('x' if is_cell_mine(p[0], 0, 1) else '.')
+                mines.append('x' if is_cell_mine(p[0], ox, oy) else '.')
 
             for i in range(1, len(p) - 1):
-                mines.append('x' if is_cell_mine(p[i], 0, 1) else '.')
+                mines.append('x' if is_cell_mine(p[i], ox, oy) else '.')
 
             if path[-1][1] == self.M - 1:
-                mines.append('x' if is_cell_mine(p[-1], 0, 1) else '.')
+                mines.append('x' if is_cell_mine(p[-1], ox, oy) else '.')
 
             print(mines)
 
