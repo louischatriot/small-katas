@@ -178,18 +178,27 @@ next_b = [set([((i & 0b000111111) << 3) + o for o in range(0, 8)]) for i in rang
 
 
 center_mine = 0b10000
-center = dict()
+east_mines = 0b001001001
+west_mines = 0b100100100
 
+center = dict()
+east = dict()
+west = dict()
+
+# TODO: Need to add case where center itself is a mine
 for n in range(0, np):
     if n & center_mine == 0:
         nm = mines_in(n)
         if nm not in center:
             center[nm] = set()
+            west[nm] = set()
+            east[nm] = set()
+
         center[nm].add(n)
-
-# TODO: Need to add case where center itself is a mine
-
-
+        if n & west_mines == 0:
+            west[nm].add(n)
+        if n & east_mines == 0:
+            east[nm].add(n)
 
 
 
@@ -221,6 +230,12 @@ class Game():
             for y in range(0, self.M):
                 if self.map[x][y] == 0:
                     self.todo_zeroes.add((x, y))
+
+        # For the merging
+        self.square_types = [[center for _ in range(0, self.M)] for _ in range(0, self.N)]
+        for x in range(0, self.N):
+            self.square_types[x][-1] = east
+            self.square_types[x][0] = west
 
 
     def print(self):
@@ -342,25 +357,16 @@ class Game():
 
         print("======================")
 
-        path = [(1, 1), (1, 2), (1, 3), (1, 4)]
+        path = [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]
 
         pos = [[]]
-
-        # x0, y0 = path[0]
-        # _initial = center[self.map[x0][y0]]
-        # mines, unopened = self.mine_pattern(x0, y0)
-        # for n in _initial:
-            # if unopened & n == mines:
-                # pos.append([n])
-                # # print("------------")
-                # # print(rep(n))
 
 
         for x, y in path:
             next = set()
-            _initial = center[self.map[x][y]]
+            cells = self.square_types[x][y][self.map[x][y]]
             mines, unopened = self.mine_pattern(x, y)
-            for n in _initial:
+            for n in cells:
                 if unopened & n == mines:
                     next.add(n)
 
@@ -376,25 +382,11 @@ class Game():
             print("===> RESULT")
             print(pos)
 
+
         for p in pos:
             print_path(p)
 
 
-
-
-
-
-
-
-            # print(next)
-            # for n in next:
-                # print('-------------')
-                # print(rep(n))
-
-
-            # for s in d:
-                # print('--------------')
-                # print(rep(s))
 
 
 
