@@ -329,6 +329,8 @@ class Game():
 
 
     def deduce_simple(self):
+        found_something = False
+
         while len(self.todo_simple) > 0:
             x, y = self.todo_simple.pop()
 
@@ -355,6 +357,7 @@ class Game():
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
                             self.mark_mine(x + dx, y + dy)
+                            found_something = True
 
                 continue
 
@@ -366,11 +369,14 @@ class Game():
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
                             self.open_cell(x + dx, y + dy)
+                            found_something = True
 
                 continue
 
             # Could not make a simple deduction, adding to merge deductions list
             self.todo_merge.add((x, y))
+
+        return found_something
 
 
     def mine_pattern(self, x, y):
@@ -413,6 +419,8 @@ class Game():
 
 
     def deduce_merge(self):
+        found_something = False
+
         for x, y in self.todo_merge:
             line_u = [(x, y)]
             line_d = [(x, y)]
@@ -465,13 +473,17 @@ class Game():
             # TODO: do the column, then understand which one is the best boundary
             path = line
 
-            # TODO: inefficient, should keep track of the patterns we can't do anymore
 
-            self.deduce_path(path, ox, oy)
+            # TODO: very inefficient, should keep track of the patterns we can't do anymore
+            found_something = self.deduce_path(path, ox, oy)
+            if found_something is True:
+                break
 
-            # TODO: update todoes with path?
-            # self.clean_todo_merge(set(path))
+        # We changed something,update todo merge and try to resume simple guesses
+        if found_something:
+            self.clean_todo_merge()   # Inefficient, should clean the path and its neighbours
 
+        return found_something
 
 
     def deduce_path(self, path, ox, oy):
@@ -553,13 +565,26 @@ class Game():
 
     def deduce(self):
         self.explore_zeroes()
-        self.deduce_simple()
-
         self.print()
 
-        self.clean_todo_merge()
+        # TODO: BFS not complete for the big map
 
-        self.deduce_merge()
+        found_something = True
+        while found_something:
+            found_something = False
+            found_something = found_something or self.deduce_simple()
+            self.clean_todo_merge()
+            found_something = found_something or self.deduce_merge()
+
+            if self.remaining_mines == 0:
+                break
+
+        if self.remaining_mines == 0:
+            pass   # TODO: return what we need to return
+        else:
+            pass   # TODO: test all possibilities
+
+
 
 
     def solve(self):
