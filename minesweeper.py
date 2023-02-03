@@ -182,10 +182,23 @@ next_b = [set([((i & 0b000111111) << 3) + o for o in range(0, 8)]) for i in rang
 center_mine = 0b10000
 east_mines = 0b001001001
 west_mines = 0b100100100
+north_mines = 0b111000000
+south_mines = 0b000000111
+nw_mines = 0b111100100
+ne_mines = 0b111001001
+sw_mines = 0b100100111
+se_mines = 0b001001111
 
 center = dict()
 east = dict()
 west = dict()
+north = dict()
+south = dict()
+nw = dict()
+ne = dict()
+sw = dict()
+se = dict()
+
 
 # TODO: Need to add case where center itself is a mine
 for n in range(0, np):
@@ -195,12 +208,31 @@ for n in range(0, np):
             center[nm] = set()
             west[nm] = set()
             east[nm] = set()
+            north[nm] = set()
+            south[nm] = set()
+            nw[nm] = set()
+            ne[nm] = set()
+            sw[nm] = set()
+            se[nm] = set()
 
         center[nm].add(n)
         if n & west_mines == 0:
             west[nm].add(n)
         if n & east_mines == 0:
             east[nm].add(n)
+        if n & north_mines == 0:
+            north[nm].add(n)
+        if n & south_mines == 0:
+            south[nm].add(n)
+
+        if n & nw_mines == 0:
+            nw[nm].add(n)
+        if n & ne_mines == 0:
+            ne[nm].add(n)
+        if n & sw_mines == 0:
+            sw[nm].add(n)
+        if n & se_mines == 0:
+            se[nm].add(n)
 
 
 
@@ -235,9 +267,16 @@ class Game():
 
         # For the merging
         self.square_types = [[center for _ in range(0, self.M)] for _ in range(0, self.N)]
-        for x in range(0, self.N):
+        for x in range(1, self.N - 1):
             self.square_types[x][-1] = east
             self.square_types[x][0] = west
+        for y in range(1, self.M - 1):
+            self.square_types[-1][y] = south
+            self.square_types[0][y] = north
+        self.square_types[0][0] = nw
+        self.square_types[0][-1] = ne
+        self.square_types[-1][0] = sw
+        self.square_types[-1][-1] = se
 
 
     def print(self):
@@ -272,6 +311,23 @@ class Game():
                     todo.add((nx, ny))
 
 
+    def mark_mine(self, x, y):
+        self.map[x][y] = 'x'
+        self.remaining_mines -= 1
+        self.add_neighbours(x, y, self.todo_simple)
+
+
+    def open_cell(self, x, y):
+        v = open(x, y)
+        self.map[x][y] = v
+
+        if v == 0:
+            self.todo_zeroes.add((x, y))
+            self.explore_zeroes()
+        else:
+            self.todo_simple.add((x, y))
+
+
     def deduce_simple(self):
         while len(self.todo_simple) > 0:
             x, y = self.todo_simple.pop()
@@ -298,10 +354,7 @@ class Game():
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
-                            self.map[x + dx][y + dy] = 'x'
-                            self.remaining_mines -= 1
-
-                            self.add_neighbours(x + dx, y + dy, self.todo_simple)
+                            self.mark_mine(x + dx, y + dy)
 
                 continue
 
@@ -312,9 +365,7 @@ class Game():
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
-                            v = open(x + dx, y + dy)
-                            self.map[x + dx][y + dy] = v
-                            self.todo_simple.add((x + dx, y + dy))
+                            self.open_cell(x + dx, y + dy)
 
                 continue
 
@@ -335,10 +386,11 @@ class Game():
         return mines, unopened
 
 
-    def clean_todo_merge(self):
+    def clean_todo_merge(self, scope=None):
         to_remove = set()
 
-        for x, y in self.todo_merge:
+        to_look = self.todo_merge if scope is None else scope.intersection(self.todo_merge)
+        for x, y in to_look:
             if (x, y) in self.done:
                 to_remove.add((x, y))
                 continue
@@ -413,11 +465,12 @@ class Game():
             # TODO: do the column, then understand which one is the best boundary
             path = line
 
+            # TODO: inefficient, should keep track of the patterns we can't do anymore
 
             self.deduce_path(path, ox, oy)
 
-
-
+            # TODO: update todoes with path?
+            # self.clean_todo_merge(set(path))
 
 
 
@@ -465,18 +518,25 @@ class Game():
                     if mines[im] != v:
                         mines[im] = 2
 
+        found_something = False
         for im, v in enumerate(mines):
             if v != 2:
+                found_something = True
                 sx, sy = path[im + start][0], path[im + start][1]
                 x, y = sx - 1 + ox, sy - 1 + oy
 
                 if v == 1:
-                    self.map[x][y] = 'x'
+                    self.mark_mine(x, y)
                 else:
-                    vv = open(x, y)
-                    self.map[x][y] = vv
+                    self.open_cell(x, y)
 
-        # TODO: update todoes and return the correct value
+        # TODO: check that it works for incomplete paths, result is weird
+
+        return found_something
+
+
+
+
 
 
 
