@@ -335,7 +335,7 @@ class Game():
         return mines, unopened
 
 
-    def deduce_merge(self):
+    def clean_todo_merge(self):
         to_remove = set()
 
         for x, y in self.todo_merge:
@@ -360,6 +360,7 @@ class Game():
             self.todo_merge.remove((x, y))
 
 
+    def deduce_merge(self):
         for x, y in self.todo_merge:
             line_u = [(x, y)]
             line_d = [(x, y)]
@@ -411,23 +412,31 @@ class Game():
 
             # TODO: do the column, then understand which one is the best boundary
             path = line
+
+
+            self.deduce_path(path, ox, oy)
+
+
+
+
+
+
+    def deduce_path(self, path, ox, oy):
+        zx, zy = path[1][0] - path[0][0], path[1][1] - path[0][1]
+
+        if zx == 0:
             next_squares = next_r
+            moving_coord = 1
+        elif zy == 0:
+            next_squares = next_b
+            moving_coord = 0
 
-
-            self.deduce_path(path, next_squares, ox, oy)
-
-
-
-
-
-
-    def deduce_path(self, path, next_squares, ox, oy):
 
         print("======================")
         print(path)
+        print(ox, oy)
 
         pos = [[]]
-
 
         for x, y in path:
             next = set()
@@ -450,18 +459,19 @@ class Game():
             print(pos)
 
 
+
+
+        start = 0 if path[0][moving_coord] == 0 else 1
+        end = len(path) if path[-1][moving_coord] == self.M - 1 else len(path) - 1
+        mines = [-1 for i in range(start, end)]
+
         for p in pos:
             print_path(p)
 
             mines = []
-            if path[0][1] == 0:
-                mines.append('x' if is_cell_mine(p[0], ox, oy) else '.')
-
-            for i in range(1, len(p) - 1):
+            for i in range(start, end):
                 mines.append('x' if is_cell_mine(p[i], ox, oy) else '.')
 
-            if path[-1][1] == self.M - 1:
-                mines.append('x' if is_cell_mine(p[-1], ox, oy) else '.')
 
             print(mines)
 
@@ -484,6 +494,8 @@ class Game():
         self.deduce_simple()
 
         self.print()
+
+        self.clean_todo_merge()
 
         self.deduce_merge()
 
