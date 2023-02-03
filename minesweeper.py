@@ -257,7 +257,7 @@ class Game():
         self.todo_merge = set()
 
         # TODO: checking off strategy is very basic and could make the algorithm much faster
-        self.done = set()
+        self.fully_done = set()
 
         # Assuming we never get anything else than zeroes as hints initially
         for x in range(0, self.N):
@@ -288,7 +288,7 @@ class Game():
         while len(self.todo_zeroes) > 0:
             x, y = self.todo_zeroes.pop()
 
-            self.done.add((x, y))
+            self.fully_done.add((x, y))
 
             for dx, dy in deltas:
                 if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
@@ -302,39 +302,52 @@ class Game():
 
 
     # Add every neighbour of this newly uncovered mine to the list
-    def add_neighbours(self, x, y, todo):
+    def add_neighbours(self, x, y):
         for dx, dy in deltas:
             nx, ny = x + dx, y + dy
 
             if 0 <= nx < self.N and 0 <= ny < self.M:
-                if self.map[nx][ny] != '?' and (nx, ny) not in self.done:
-                    todo.add((nx, ny))
+                if self.map[nx][ny] != '?' and (nx, ny) not in self.fully_done:
+                    self.todo_simple.add((nx, ny))
 
 
     def mark_mine(self, x, y):
-        self.map[x][y] = 'x'
-        self.remaining_mines -= 1
-        self.add_neighbours(x, y, self.todo_simple)
+        if self.map[x][y] == 'x':
+            return False
+        elif self.map[x][y] != '?':
+            raise ValueError("What the heck")
+        else:
+            self.map[x][y] = 'x'
+            self.remaining_mines -= 1
+            self.add_neighbours(x, y)
+            return True
 
 
     def open_cell(self, x, y):
         v = open(x, y)
-        self.map[x][y] = v
 
-        if v == 0:
-            self.todo_zeroes.add((x, y))
-            self.explore_zeroes()
+        if self.map[x][y] == v:
+            return False
+        elif self.map[x][y] == '?':
+            self.map[x][y] = v
+
+            if v == 0:
+                self.todo_zeroes.add((x, y))
+                self.explore_zeroes()
+            else:
+                self.todo_simple.add((x, y))
+                self.add_neighbours(x, y)
+
+            return True
         else:
-            self.todo_simple.add((x, y))
+            raise ValueError("What the fuck")
 
 
     def deduce_simple(self):
-        found_something = False
-
         while len(self.todo_simple) > 0:
             x, y = self.todo_simple.pop()
 
-            if (x, y) in self.done:
+            if (x, y) in self.fully_done:
                 continue
 
             v = self.map[x][y]
@@ -351,32 +364,28 @@ class Game():
 
             # All squares touching this one are mines
             if unopened != 0 and unopened + mines == v:
-                self.done.add((x, y))
-
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
                             self.mark_mine(x + dx, y + dy)
-                            found_something = True
+
+                self.fully_done.add((x, y))
 
                 continue
 
             # All squares touching this one are empty
             if unopened != 0 and mines == v:
-                self.done.add((x, y))
-
                 for dx, dy in deltas:
                     if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                         if self.map[x + dx][y + dy] == '?':
                             self.open_cell(x + dx, y + dy)
-                            found_something = True
+
+                self.fully_done.add((x, y))
 
                 continue
 
             # Could not make a simple deduction, adding to merge deductions list
             self.todo_merge.add((x, y))
-
-        return found_something
 
 
     def mine_pattern(self, x, y):
@@ -397,7 +406,7 @@ class Game():
 
         to_look = self.todo_merge if scope is None else scope.intersection(self.todo_merge)
         for x, y in to_look:
-            if (x, y) in self.done:
+            if (x, y) in self.fully_done:
                 to_remove.add((x, y))
                 continue
 
@@ -409,7 +418,7 @@ class Game():
                         unopened += 1
 
             if unopened == 0:
-                self.done.add((x, y))
+                self.fully_done.add((x, y))
                 to_remove.add((x, y))
                 continue
 
@@ -496,6 +505,9 @@ class Game():
             next_squares = next_b
             moving_coord = 0
 
+        path = path[1:]
+        # print(path)
+
         pos = [[]]
         for x, y in path:
             next = set()
@@ -519,7 +531,7 @@ class Game():
         mines = [-1 for i in range(start, end)]   # -1 means never set, 2 means conflict
 
         for p in pos:
-            print_path(p)
+            # print_path(p)
 
             for i in range(start, end):
                 v = 1 if is_cell_mine(p[i], ox, oy) else 0
@@ -566,6 +578,10 @@ class Game():
     def deduce(self):
         self.explore_zeroes()
         self.print()
+        self.deduce_simple()
+        self.print()
+
+        1/0
 
         # TODO: BFS not complete for the big map
 
