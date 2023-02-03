@@ -431,13 +431,7 @@ class Game():
             next_squares = next_b
             moving_coord = 0
 
-
-        print("======================")
-        print(path)
-        print(ox, oy)
-
         pos = [[]]
-
         for x, y in path:
             next = set()
             cells = self.square_types[x][y][self.map[x][y]]
@@ -455,28 +449,36 @@ class Game():
 
             pos = _pos
 
-            print("===> RESULT")
-            print(pos)
-
-
-
-
         start = 0 if path[0][moving_coord] == 0 else 1
         end = len(path) if path[-1][moving_coord] == self.M - 1 else len(path) - 1
-        mines = [-1 for i in range(start, end)]
+        mines = [-1 for i in range(start, end)]   # -1 means never set, 2 means conflict
 
         for p in pos:
             print_path(p)
 
-            mines = []
             for i in range(start, end):
-                mines.append('x' if is_cell_mine(p[i], ox, oy) else '.')
+                v = 1 if is_cell_mine(p[i], ox, oy) else 0
+                im = i - start
+                if mines[im] == -1:
+                    mines[im] = v
+                else:
+                    if mines[im] != v:
+                        mines[im] = 2
+
+        for im, v in enumerate(mines):
+            if v != 2:
+                sx, sy = path[im + start][0], path[im + start][1]
+                x, y = sx - 1 + ox, sy - 1 + oy
+
+                if v == 1:
+                    self.map[x][y] = 'x'
+                else:
+                    vv = open(x, y)
+                    self.map[x][y] = vv
+
+        # TODO: update todoes and return the correct value
 
 
-            print(mines)
-
-        # TODO: find common
-        # TODO: get start
 
 
 
