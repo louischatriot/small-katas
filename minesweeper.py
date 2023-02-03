@@ -258,12 +258,14 @@ class Game():
 
         # TODO: checking off strategy is very basic and could make the algorithm much faster
         self.fully_done = set()
+        self.opened = set()
 
         # Assuming we never get anything else than zeroes as hints initially
         for x in range(0, self.N):
             for y in range(0, self.M):
                 if self.map[x][y] == 0:
                     self.todo_zeroes.add((x, y))
+                    self.opened.add((x, y))
 
         # For the merging
         self.square_types = [[center for _ in range(0, self.M)] for _ in range(0, self.N)]
@@ -293,8 +295,10 @@ class Game():
             for dx, dy in deltas:
                 if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
                     if self.map[x + dx][y + dy] == '?':
+                        # Not using open_cell here
                         v = open(x + dx, y + dy)
                         self.map[x + dx][y + dy] = v
+                        self.opened.add((x + dx, y + dy))
                         if v == 0:
                             self.todo_zeroes.add((x + dx, y + dy))
                         else:
@@ -314,13 +318,14 @@ class Game():
     def mark_mine(self, x, y):
         if self.map[x][y] == 'x':
             return False
-        elif self.map[x][y] != '?':
-            raise ValueError("What the heck")
-        else:
+        elif self.map[x][y] == '?':
             self.map[x][y] = 'x'
             self.remaining_mines -= 1
+            self.opened.add((x, y))
             self.add_neighbours(x, y)
             return True
+        else:
+            raise ValueError("What the heck")
 
 
     def open_cell(self, x, y):
@@ -330,6 +335,7 @@ class Game():
             return False
         elif self.map[x][y] == '?':
             self.map[x][y] = v
+            self.opened.add((x, y))
 
             if v == 0:
                 self.todo_zeroes.add((x, y))
@@ -505,7 +511,7 @@ class Game():
             next_squares = next_b
             moving_coord = 0
 
-        path = path[1:]
+        # path = path[1:]
         # print(path)
 
         pos = [[]]
@@ -577,22 +583,18 @@ class Game():
 
     def deduce(self):
         self.explore_zeroes()
+
         self.print()
-        self.deduce_simple()
-        self.print()
+        print("FIRST ZERO DONE")
 
-        1/0
+        while True:
+            before = len(self.opened)
 
-        # TODO: BFS not complete for the big map
-
-        found_something = True
-        while found_something:
-            found_something = False
-            found_something = found_something or self.deduce_simple()
+            self.deduce_simple()
             self.clean_todo_merge()
-            found_something = found_something or self.deduce_merge()
+            self.deduce_merge()
 
-            if self.remaining_mines == 0:
+            if self.remaining_mines == 0 or len(self.opened) == before:
                 break
 
         if self.remaining_mines == 0:
