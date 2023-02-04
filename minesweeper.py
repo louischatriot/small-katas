@@ -511,9 +511,6 @@ class Game():
             next_squares = next_b
             moving_coord = 0
 
-        # path = path[1:]
-        # print(path)
-
         pos = [[]]
         for x, y in path:
             next = set()
@@ -532,35 +529,36 @@ class Game():
 
             pos = _pos
 
-        start = 0 if path[0][moving_coord] == 0 else 1
-        end = len(path) if path[-1][moving_coord] == self.M - 1 else len(path) - 1
-        mines = [-1 for i in range(start, end)]   # -1 means never set, 2 means conflict
+        # Range tracks both real and path coordinates
+        the_range = [(i, ox, oy) for i in range(0, len(path))]
+        if path[0][moving_coord] > 0:
+            e = (0, ox - (1 if moving_coord == 0 else 0), oy - (1 if moving_coord == 1 else 0))
+            the_range.insert(0, e)
+        if path[-1][moving_coord] < self.M - 1:
+            e = (len(path) - 1, ox + (1 if moving_coord == 0 else 0), oy + (1 if moving_coord == 1 else 0))
+            the_range.append(e)
+
+        # Not really beautiful to put unnecessary data
+        mines = [(-1, -1, -1) for i in range(0, len(the_range))]   # -1 means never set, 2 means conflict
 
         for p in pos:
-            # print_path(p)
+            for n, (i, _ox, _oy) in enumerate(the_range):
+                v = 1 if is_cell_mine(p[i], _ox, _oy) else 0
 
-            for i in range(start, end):
-                v = 1 if is_cell_mine(p[i], ox, oy) else 0
-                im = i - start
-                if mines[im] == -1:
-                    mines[im] = v
+                if mines[n][0] == -1:
+                    mines[n] = (v, path[i][0] - 1 +_ox, path[i][1] - 1 + _oy)
                 else:
-                    if mines[im] != v:
-                        mines[im] = 2
+                    if mines[n][0] != v:
+                        mines[n] = (2, -1, -1)
 
         found_something = False
-        for im, v in enumerate(mines):
+        for v, x, y in mines:
             if v != 2:
                 found_something = True
-                sx, sy = path[im + start][0], path[im + start][1]
-                x, y = sx - 1 + ox, sy - 1 + oy
-
                 if v == 1:
                     self.mark_mine(x, y)
                 else:
                     self.open_cell(x, y)
-
-        # TODO: check that it works for incomplete paths, result is weird
 
         return found_something
 
@@ -585,14 +583,23 @@ class Game():
         self.explore_zeroes()
 
         self.print()
-        print("FIRST ZERO DONE")
 
         while True:
             before = len(self.opened)
 
             self.deduce_simple()
             self.clean_todo_merge()
+
+
+            self.print()
+
+
             self.deduce_merge()
+
+
+            self.print()
+
+            # 1/0
 
             if self.remaining_mines == 0 or len(self.opened) == before:
                 break
