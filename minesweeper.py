@@ -106,9 +106,35 @@ small_res = """
 
 
 
+rectangle_map = """
+0 0 0 0 0 0 0 0 ? ? ? ? ? 0 ? ? ? 0 ? ? ?
+0 0 0 0 0 0 0 0 ? ? ? ? ? 0 ? ? ? ? ? ? ?
+0 0 0 0 0 0 0 0 0 0 ? ? ? 0 ? ? ? ? ? ? ?
+0 0 0 0 0 ? ? ? 0 0 ? ? ? 0 ? ? ? ? ? ? 0
+? ? 0 0 0 ? ? ? 0 ? ? ? ? 0 0 ? ? ? ? ? ?
+? ? 0 0 0 ? ? ? 0 ? ? ? 0 0 0 ? ? ? ? ? ?
+? ? ? 0 0 0 0 0 0 ? ? ? 0 0 0 0 0 0 ? ? ?
+? ? ? 0 0 0 0 0 0 0 ? ? ? ? 0 0 ? ? ? 0 0
+? ? ? 0 0 0 0 0 0 0 ? ? ? ? 0 0 ? ? ? 0 0
+""".strip()
 
-map = small_map
-res = small_res
+rectangle_res = """
+0 0 0 0 0 0 0 0 1 x x 2 1 0 1 x 1 0 1 2 x
+0 0 0 0 0 0 0 0 1 2 3 x 1 0 2 2 2 1 2 x 2
+0 0 0 0 0 0 0 0 0 0 2 2 2 0 1 x 1 1 x 2 1
+0 0 0 0 0 1 1 1 0 0 1 x 1 0 1 2 2 2 1 1 0
+1 1 0 0 0 1 x 1 0 1 2 2 1 0 0 1 x 1 1 1 1
+x 1 0 0 0 1 1 1 0 1 x 1 0 0 0 1 1 1 1 x 1
+2 2 1 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 1
+1 x 1 0 0 0 0 0 0 0 1 2 2 1 0 0 1 1 1 0 0
+1 1 1 0 0 0 0 0 0 0 1 x x 1 0 0 1 x 1 0 0
+""".strip()
+
+
+
+
+map = rectangle_map
+res = rectangle_res
 solution = [[int(c) if c != 'x' else 'x' for c in l.split(' ')] for l in res.split('\n')]
 n_mines = sum([sum([1 if c == 'x' else 0 for c in l]) for l in solution])
 
@@ -510,6 +536,8 @@ class Game():
         elif zy == 0:
             next_squares = next_b
             moving_coord = 0
+
+        print(path)
 
         pos = [[]]
         for x, y in path:
