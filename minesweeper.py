@@ -132,15 +132,50 @@ x 1 0 0 0 1 1 1 0 1 x 1 0 0 0 1 1 1 1 x 1
 
 
 
+map1 = """
+0 0 0 0 0 0 0 0 0 0 0 0 ? ? ? 0 0 0 0 0 0 0 0 ? ? ? ? ? ? 0
+0 0 0 0 0 0 0 0 0 0 0 0 ? ? ? 0 ? ? ? 0 0 0 0 ? ? ? ? ? ? 0
+? ? ? 0 0 0 0 ? ? ? 0 0 0 0 ? ? ? ? ? 0 0 0 0 ? ? ? ? ? ? 0
+? ? ? ? ? ? 0 ? ? ? ? ? 0 0 ? ? ? ? ? 0 0 0 0 ? ? ? 0 0 0 0
+? ? ? ? ? ? 0 ? ? ? ? ? 0 0 ? ? ? ? 0 0 0 0 0 ? ? ? 0 0 ? ?
+0 ? ? ? ? ? 0 0 0 ? ? ? 0 ? ? ? ? ? 0 0 0 0 0 ? ? ? 0 0 ? ?
+0 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? 0 0 0 ? ? ? ? ? ? ?
+0 0 0 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? 0 ? ? ? 0 0 ? ? ? 0
+0 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? 0 ? ? ? 0 0 ? ? ? 0
+? ? ? ? 0 ? ? ? ? 0 0 0 ? ? ? ? ? ? ? 0 0 ? ? ? 0 0 ? ? ? 0
+? ? ? ? 0 ? ? ? ? ? 0 0 ? ? ? ? ? ? ? 0 0 0 ? ? ? 0 0 0 0 0
+? ? ? ? ? ? ? ? ? ? 0 0 ? ? ? ? ? ? ? 0 0 0 ? ? ? ? 0 0 0 0
+? ? ? ? ? ? ? ? ? ? 0 0 0 0 ? ? ? ? ? 0 0 0 ? ? ? ? 0 0 0 0
+? ? ? ? ? ? ? 0 0 ? ? ? 0 0 ? ? ? 0 0 0 0 0 ? ? ? ? 0 0 0 0
+? ? ? ? 0 0 0 0 0 ? ? ? 0 0 ? ? ? 0 0 0 0 0 ? ? ? 0 0 0 0 0
+""".strip()
 
-map = rectangle_map
-res = rectangle_res
+
+res1 = """
+0 0 0 0 0 0 0 0 0 0 0 0 1 x 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0
+0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 1 1 1 0 0 0 0 2 x 2 1 x 1 0
+1 1 1 0 0 0 0 1 1 1 0 0 0 0 1 1 2 x 1 0 0 0 0 2 x 2 1 1 1 0
+1 x 1 1 1 1 0 1 x 2 1 1 0 0 1 x 2 1 1 0 0 0 0 1 1 1 0 0 0 0
+1 2 2 3 x 2 0 1 1 2 x 1 0 0 1 2 2 1 0 0 0 0 0 1 1 1 0 0 1 1
+0 1 x 3 x 2 0 0 0 1 1 1 0 1 2 3 x 1 0 0 0 0 0 1 x 1 0 0 1 x
+0 1 1 3 3 3 2 1 1 1 1 2 1 2 x x 2 2 1 1 0 0 0 1 1 1 1 1 2 1
+0 0 0 1 x x 2 x 1 1 x 2 x 2 3 3 3 2 x 1 0 1 1 1 0 0 2 x 2 0
+0 1 1 2 2 2 3 2 2 1 1 2 1 1 1 x 2 x 2 1 0 1 x 1 0 0 2 x 2 0
+1 2 x 1 0 1 2 x 1 0 0 0 1 1 2 2 3 2 1 0 0 1 1 1 0 0 1 1 1 0
+1 x 2 1 0 1 x 3 2 1 0 0 1 x 1 1 x 2 1 0 0 0 1 1 1 0 0 0 0 0
+1 1 2 1 2 2 2 2 x 1 0 0 1 1 1 1 2 x 1 0 0 0 1 x 2 1 0 0 0 0
+1 1 2 x 2 x 1 1 1 1 0 0 0 0 1 1 2 1 1 0 0 0 1 2 x 1 0 0 0 0
+1 x 3 2 2 1 1 0 0 1 1 1 0 0 1 x 1 0 0 0 0 0 1 2 2 1 0 0 0 0
+1 2 x 1 0 0 0 0 0 1 x 1 0 0 1 1 1 0 0 0 0 0 1 x 1 0 0 0 0 0
+""".strip()
+
+
+
+
+map = map1
+res = res1
 solution = [[int(c) if c != 'x' else 'x' for c in l.split(' ')] for l in res.split('\n')]
 n_mines = sum([sum([1 if c == 'x' else 0 for c in l]) for l in solution])
-
-
-full_deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
-deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
 
 
 def open(x, y):
@@ -149,6 +184,14 @@ def open(x, y):
             raise ValueError("Boom")
         else:
             return solution[x][y]
+
+# Code for Codewars below this
+
+
+
+full_deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
+
 
 
 # Each 3x3 square represented by a unique number whose binary representation says
@@ -333,7 +376,11 @@ class Game():
 
     def print(self):
         print("=================================")
-        print('\n'.join([' '.join([str(c) if str(c) != '?' else '.' for c in l]) for l in self.map]))
+        print(self.string_rep())
+
+
+    def string_rep(self):
+        return '\n'.join([' '.join([str(c) if str(c) != '?' else '.' for c in l]) for l in self.map])
 
 
     def explore_zeroes(self):
@@ -561,8 +608,6 @@ class Game():
             next_squares = next_b
             moving_coord = 0
 
-        print(path)
-
         pos = [[]]
         for x, y in path:
             next = set()
@@ -615,57 +660,31 @@ class Game():
         return found_something
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def deduce(self):
+    def solve(self):
         self.explore_zeroes()
 
-        self.print()
+        # self.mark_mine(0, 19)
 
         while True:
             before = len(self.opened)
 
             self.deduce_simple()
             self.clean_todo_merge()
-
-
-            self.print()
-
-
             self.deduce_merge()
-
-
-            self.print()
-
-            # 1/0
 
             if self.remaining_mines == 0 or len(self.opened) == before:
                 break
 
+        self.print()
+
+
         if self.remaining_mines == 0:
-            pass   # TODO: return what we need to return
-        else:
-            pass   # TODO: test all possibilities
+            return self.string_rep()
 
 
-
-
-    def solve(self):
-        self.deduce()
+        # Test all possibilities (??)
+        # Assume that we don't need to do that for now and see if all cases are taken into account
+        return '?'
 
 
 
@@ -676,7 +695,7 @@ class Game():
 
 def solve_mine(map, n):
     game = Game(map, n)
-    game.solve()
+    return game.solve()
 
 
 
@@ -692,7 +711,13 @@ def solve_mine(map, n):
 
 t.reset()
 
-# solve_mine(map, n_mines)
+res = solve_mine(map, n_mines)
+
+print(res)
+
+1/0
+
+
 
 game = Game(map, n_mines)
 game.print()
