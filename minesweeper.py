@@ -205,6 +205,7 @@ next_r = [set([((i & 0b011011011) << 1) + o1 * 0b001000000 + o2 * 0b000001000 + 
 next_b = [set([((i & 0b000111111) << 3) + o for o in range(0, 8)]) for i in range(0, np) ]
 
 
+# Should refact just because this is really ugly
 center_mine = 0b10000
 east_mines = 0b001001001
 west_mines = 0b100100100
@@ -225,8 +226,16 @@ ne = dict()
 sw = dict()
 se = dict()
 
+center['x'] = set()
+east['x'] = set()
+west['x'] = set()
+north['x'] = set()
+south['x'] = set()
+nw['x'] = set()
+ne['x'] = set()
+sw['x'] = set()
+se['x'] = set()
 
-# TODO: Need to add case where center itself is a mine
 for n in range(0, np):
     if n & center_mine == 0:
         nm = mines_in(n)
@@ -260,10 +269,25 @@ for n in range(0, np):
         if n & se_mines == 0:
             se[nm].add(n)
 
+    else:
+        center['x'].add(n)
+        if n & west_mines == 0:
+            west['x'].add(n)
+        if n & east_mines == 0:
+            east['x'].add(n)
+        if n & north_mines == 0:
+            north['x'].add(n)
+        if n & south_mines == 0:
+            south['x'].add(n)
 
-
-
-
+        if n & nw_mines == 0:
+            nw['x'].add(n)
+        if n & ne_mines == 0:
+            ne['x'].add(n)
+        if n & sw_mines == 0:
+            sw['x'].add(n)
+        if n & se_mines == 0:
+            se['x'].add(n)
 
 
 
