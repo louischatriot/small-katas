@@ -225,10 +225,86 @@ map2 = """
 """.strip()
 
 
+map3 = """
+0 0 0 ? ? ? ? ? 0 0 0 0 0 0 ? ? ? 0 0 0 ? ? ? ? ? ?
+0 0 0 ? ? ? ? ? 0 0 0 ? ? ? ? ? ? 0 0 ? ? ? ? ? ? ?
+0 ? ? ? ? ? ? ? ? ? ? ? ? ? 0 0 0 0 0 ? ? ? ? ? ? ?
+0 ? ? ? ? ? ? ? ? ? ? ? ? ? 0 0 0 0 0 ? ? ? 0 0 0 0
+0 ? ? ? ? ? ? ? ? ? ? ? 0 0 0 0 0 0 0 ? ? ? ? 0 0 0
+0 0 ? ? ? ? 0 0 0 ? ? ? 0 0 0 ? ? ? ? ? ? ? ? 0 0 0
+0 0 ? ? ? ? 0 0 0 ? ? ? 0 0 0 ? ? ? ? ? ? ? ? 0 0 0
+? ? ? ? ? ? 0 0 0 ? ? ? ? ? ? ? ? ? ? ? ? 0 0 0 0 0
+? ? ? ? ? ? 0 0 0 0 0 0 ? ? ? ? ? 0 0 ? ? ? 0 0 0 0
+? ? ? ? ? ? 0 0 0 0 0 0 ? ? ? ? ? ? ? ? ? ? 0 0 0 0
+0 ? ? ? 0 0 0 0 0 0 0 0 0 ? ? ? ? ? ? ? ? ? 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 ? ? ? ? ? ? ? ? ? ? ? 0 0
+0 0 0 0 0 ? ? ? 0 0 0 0 0 ? ? ? ? ? ? ? 0 ? ? ? ? ?
+0 0 0 0 0 ? ? ? 0 ? ? ? 0 0 0 0 ? ? ? ? ? ? ? ? ? ?
+0 ? ? ? ? ? ? ? 0 ? ? ? 0 0 0 0 ? ? ? ? ? 0 0 0 ? ?
+0 ? ? ? ? ? 0 0 ? ? ? ? 0 0 0 ? ? ? ? ? ? 0 0 0 ? ?
+0 ? ? ? ? ? 0 0 ? ? ? 0 0 0 0 ? ? ? ? ? ? 0 0 0 ? ?
+""".strip()
+
+res3 = """
+0 0 0 1 2 3 x 1 0 0 0 0 0 0 1 x 1 0 0 0 1 1 1 1 1 1
+0 0 0 1 x x 2 1 0 0 0 1 1 1 1 1 1 0 0 1 2 x 1 1 x 1
+0 1 2 3 4 3 3 1 1 1 1 2 x 1 0 0 0 0 0 2 x 3 1 1 1 1
+0 1 x x 2 x 2 x 1 1 x 2 1 1 0 0 0 0 0 2 x 2 0 0 0 0
+0 1 2 2 2 1 2 1 1 1 1 1 0 0 0 0 0 0 0 1 2 2 1 0 0 0
+0 0 1 2 2 1 0 0 0 1 1 1 0 0 0 1 1 1 1 1 2 x 1 0 0 0
+0 0 1 x x 1 0 0 0 1 x 1 0 0 0 1 x 1 1 x 2 1 1 0 0 0
+1 1 2 3 3 2 0 0 0 1 1 1 1 1 2 2 2 1 1 1 1 0 0 0 0 0
+1 x 2 2 x 1 0 0 0 0 0 0 1 x 2 x 1 0 0 1 1 1 0 0 0 0
+1 2 x 2 1 1 0 0 0 0 0 0 1 1 2 2 2 1 1 3 x 2 0 0 0 0
+0 1 1 1 0 0 0 0 0 0 0 0 0 1 1 2 x 1 1 x x 2 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 x 2 1 2 2 3 2 2 1 1 0 0
+0 0 0 0 0 1 1 1 0 0 0 0 0 1 1 1 1 2 x 1 0 1 x 1 1 1
+0 0 0 0 0 1 x 1 0 1 1 1 0 0 0 0 1 x 3 2 1 1 1 1 1 x
+0 1 1 2 1 2 1 1 0 1 x 1 0 0 0 0 1 1 2 x 1 0 0 0 1 1
+0 2 x 3 x 1 0 0 1 2 2 1 0 0 0 1 1 1 2 2 2 0 0 0 1 1
+0 2 x 3 1 1 0 0 1 x 1 0 0 0 0 1 x 1 1 x 1 0 0 0 1 x
+""".strip()
 
 
-map = map2
-res = res2
+
+map4 = """
+0 0 0 0
+0 0 0 0
+? ? 0 0
+? ? ? ?
+? ? ? ?
+? ? ? ?
+? ? 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+""".strip()
+
+res4 = """
+0 0 0 0
+0 0 0 0
+1 1 0 0
+x 2 1 1
+x 3 1 x
+x 2 1 1
+1 1 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+""".strip()
+
+
+
+
+
+
+
+
+
+
+
+map = map3
+res = res3
 solution = [[int(c) if c != 'x' else 'x' for c in l.split(' ')] for l in res.split('\n')]
 n_mines = sum([sum([1 if c == 'x' else 0 for c in l]) for l in solution])
 
@@ -240,9 +316,11 @@ def open(x, y):
         else:
             return solution[x][y]
 
+
+
+
+
 # Code for Codewars below this
-
-
 
 full_deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
 deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
@@ -680,34 +758,7 @@ class Game():
                     else:
                         break
 
-
-            # m = max(len(line_u), len(line_d), len(column_l), len(column_r))
-            # if m < 2:
-                # # So not optimal as well
-                # continue
-
-            # if m == len(line_u):
-                # path = line_u
-                # ox, oy = 0, 1
-            # elif m == len(line_d):
-                # path = line_d
-                # ox, oy = 2, 1
-            # elif m == len(column_l):
-                # path = column_l
-                # ox, oy = 1, 0
-            # elif m == len(column_r):
-                # path = column_r
-                # ox, oy = 1, 2
-
-            # line = line_u if len(line_u) > len(line_d) else line_d
-            # ox, oy = (0, 1) if len(line_u) > len(line_d) else (2, 1)
-
-
-            # path = line
-
-
-            # TODO: very inefficient, should keep track of the patterns we can't do anymore
-
+            # TODO: very inefficient, should keep track of the patterns we can't do anymore (or better, use longest non linear paths)
             for path, ox, oy in [(line_u, 0, 1), (line_d, 2, 1), (column_l, 1, 0), (column_r, 1, 2)]:
                 if len(path) <= 1:
                     continue
@@ -788,22 +839,7 @@ class Game():
         return found_something
 
 
-    def solve(self):
-        self.explore_zeroes()
-
-        while True:
-            before = len(self.opened)
-
-            self.deduce_simple()
-            self.clean_todo_merge()
-            self.deduce_merge()
-
-            if self.remaining_mines == 0 or len(self.opened) == before:
-                break
-
-        if self.remaining_mines == 0:
-            return self.string_rep()
-
+    def test_all_remaining(self):
         # Test all remaining possibilities (because I'm too lazy to improve the boundary path merge)
         unopened = set()
         boundary_state = dict()
@@ -829,7 +865,12 @@ class Game():
             n_2_u.append((x, y))
             u_2_n[(x, y)] = n
 
-        pos = all_pos(len(unopened), self.remaining_mines)
+        pos = []
+        l = len(unopened)
+        remaining = self.N * self.M - len(self.opened)
+
+        for i in range(0, remaining - l + 1):
+            pos = pos + all_pos(l, self.remaining_mines - i)
         the_p = [-1 for _ in range(0, len(unopened))]
 
         for p in pos:
@@ -844,42 +885,63 @@ class Game():
                     break
 
             if p_ok:
-                print(p)
-
                 for i in range(0, len(p)):
                     if the_p[i] == -1:
                         the_p[i] = p[i]
                     elif the_p[i] != p[i]:
                         the_p[i] = 2
 
-        self.print()
-        print("=======================")
-        print(the_p)
-        print(n_2_u)
-
-
-
-        found_something = False
+        # found_something = False
         for n, v in enumerate(the_p):
             x, y = n_2_u[n]
 
             if v == 0:
                 self.open_cell(x, y)
-                found_something = True
+                # found_something = True
             elif v == 1:
                 self.mark_mine(x, y)
-                found_something = True
+                # found_something = True
+
+
+    def solve(self):
+        if self.N == 1 and self.M == 1 and self.map[0][0] == '?':
+            if self.remaining_mines == 0:
+                return '0'
+            else:
+                return 'x'
+
+        self.explore_zeroes()
+
+        while True:
+            before = len(self.opened)
+
+            self.deduce_simple()
+
+            if self.remaining_mines == 0:
+                break
+
+            self.clean_todo_merge()
+            self.deduce_merge()
+
+            if self.remaining_mines == 0:
+                break
+
+            self.test_all_remaining()
+
+            if self.remaining_mines == 0 or len(self.opened) == before:
+                break
 
 
         if self.remaining_mines == 0:
-            # Maybe check that we should open any unopened cell
+            for x in range(0, self.N):
+                for y in range(0, self.M):
+                    if self.map[x][y] == '?':
+                        self.open_cell(x, y)
+
             return self.string_rep()
 
-        elif found_something is False:
-            return '?'
-
         else:
-            return self.solve()
+            return '?'
 
 
 
