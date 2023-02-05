@@ -172,8 +172,63 @@ res1 = """
 
 
 
-map = map1
-res = res1
+res2 = """
+1 1 0 1 1 1 0 0 1 1 1 0 0 0 0 1 1 1 0
+x 1 0 1 x 1 0 0 2 x 2 0 0 0 0 1 x 2 1
+1 1 0 2 3 3 1 1 3 x 2 0 0 0 0 1 2 x 1
+0 1 1 2 x x 1 2 x 3 1 0 0 0 0 0 1 1 1
+0 1 x 2 2 2 1 3 x 3 0 0 0 0 0 0 0 0 0
+0 1 1 1 0 0 0 2 x 2 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 1 1 1 1 2 2 1 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 1 x x 1 0 0 0 0 0
+0 0 1 1 1 0 1 1 1 0 1 2 2 1 0 0 0 0 0
+0 0 1 x 2 1 3 x 2 0 0 0 0 0 0 1 1 1 0
+0 0 1 1 2 x 3 x 3 1 1 0 0 0 0 1 x 1 0
+0 0 0 0 1 2 3 2 2 x 1 0 0 0 0 1 1 1 0
+0 0 0 0 0 1 x 1 1 1 1 0 0 0 0 0 1 1 1
+0 0 1 1 2 2 2 1 0 0 0 0 0 0 0 0 1 x 1
+0 0 1 x 2 x 2 1 1 0 0 0 0 0 0 0 1 1 1
+0 0 1 1 2 1 3 x 3 1 0 0 0 0 0 0 0 1 1
+0 0 0 0 0 0 2 x x 1 0 0 0 1 1 1 0 1 x
+0 0 0 1 1 1 1 2 2 1 0 0 0 1 x 1 1 2 2
+0 0 0 1 x 3 2 1 0 0 0 1 1 2 1 1 1 x 2
+0 0 0 1 2 x x 1 0 0 0 1 x 1 0 1 2 3 x
+0 0 0 0 1 2 2 1 1 1 1 1 1 1 0 1 x 3 2
+0 0 0 0 1 1 1 1 2 x 1 1 1 1 0 2 3 x 2
+0 0 0 0 1 x 1 1 x 2 1 1 x 1 0 1 x 3 x
+""".strip()
+
+map2 = """
+? ? 0 ? ? ? 0 0 ? ? ? 0 0 0 0 ? ? ? 0
+? ? 0 ? ? ? 0 0 ? ? ? 0 0 0 0 ? ? ? ?
+? ? 0 ? ? ? ? ? ? ? ? 0 0 0 0 ? ? ? ?
+0 ? ? ? ? ? ? ? ? ? ? 0 0 0 0 0 ? ? ?
+0 ? ? ? ? ? ? ? ? ? 0 0 0 0 0 0 0 0 0
+0 ? ? ? 0 0 0 ? ? ? 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 ? ? ? ? ? ? ? 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 ? ? ? ? 0 0 0 0 0
+0 0 ? ? ? 0 ? ? ? 0 ? ? ? ? 0 0 0 0 0
+0 0 ? ? ? ? ? ? ? 0 0 0 0 0 0 ? ? ? 0
+0 0 ? ? ? ? ? ? ? ? ? 0 0 0 0 ? ? ? 0
+0 0 0 0 ? ? ? ? ? ? ? 0 0 0 0 ? ? ? 0
+0 0 0 0 0 ? ? ? ? ? ? 0 0 0 0 0 ? ? ?
+0 0 ? ? ? ? ? ? 0 0 0 0 0 0 0 0 ? ? ?
+0 0 ? ? ? ? ? ? ? 0 0 0 0 0 0 0 ? ? ?
+0 0 ? ? ? ? ? ? ? ? 0 0 0 0 0 0 0 ? ?
+0 0 0 0 0 0 ? ? ? ? 0 0 0 ? ? ? 0 ? ?
+0 0 0 ? ? ? ? ? ? ? 0 0 0 ? ? ? ? ? ?
+0 0 0 ? ? ? ? ? 0 0 0 ? ? ? ? ? ? ? ?
+0 0 0 ? ? ? ? ? 0 0 0 ? ? ? 0 ? ? ? ?
+0 0 0 0 ? ? ? ? ? ? ? ? ? ? 0 ? ? ? ?
+0 0 0 0 ? ? ? ? ? ? ? ? ? ? 0 ? ? ? ?
+0 0 0 0 ? ? ? ? ? ? ? ? ? ? 0 ? ? ? ?
+""".strip()
+
+
+
+
+map = map2
+res = res2
 solution = [[int(c) if c != 'x' else 'x' for c in l.split(' ')] for l in res.split('\n')]
 n_mines = sum([sum([1 if c == 'x' else 0 for c in l]) for l in solution])
 
@@ -192,6 +247,21 @@ def open(x, y):
 full_deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
 deltas = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
 
+# Dynamic programming if needed here
+def all_pos(size, mines):
+    if mines == 0:
+        return [[0 for _ in range(0, size)]]
+
+    if size == 0:
+        return []
+
+    res = []
+    for l in all_pos(size - 1, mines):
+        res.append(l + [0])
+    for l in all_pos(size - 1, mines - 1):
+        res.append(l + [1])
+
+    return res
 
 
 # Each 3x3 square represented by a unique number whose binary representation says
@@ -716,8 +786,6 @@ class Game():
     def solve(self):
         self.explore_zeroes()
 
-        # self.mark_mine(0, 19)
-
         while True:
             before = len(self.opened)
 
@@ -728,24 +796,78 @@ class Game():
             if self.remaining_mines == 0 or len(self.opened) == before:
                 break
 
-        self.print()
-
-        # self.open_cell(11, 0)
-        # self.open_cell(12, 0)
-        # self.open_cell(13, 0)
-        # self.open_cell(13, 2)
-
-        self.print()
-        print(self.remaining_mines)
-
-
         if self.remaining_mines == 0:
             return self.string_rep()
 
+        # Test all remaining possibilities (because I'm too lazy to improve the boundary path merge)
+        unopened = set()
+        boundary_state = dict()
+        for x,y in self.todo_merge:
+            real_mines = 0
+            ns = set()
 
-        # Test all possibilities (??)
-        # Assume that we don't need to do that for now and see if all cases are taken into account
-        return '?'
+            for dx, dy in deltas:
+                if 0 <= x + dx < self.N and 0 <= y + dy < self.M:
+                    if self.map[x + dx][y + dy] == '?':
+                        unopened.add((x + dx, y + dy))
+                        ns.add((x + dx, y + dy))
+                    elif self.map[x + dx][y + dy] == 'x':
+                        real_mines += 1
+
+            if self.map[x][y] != 'x':
+                boundary_state[(x, y)] = [self.map[x][y] - real_mines, ns]
+
+        u_2_n = dict()
+        n_2_u = list()
+
+        for n, (x,y) in enumerate(unopened):
+            n_2_u.append((x, y))
+            u_2_n[(x, y)] = n
+
+        pos = all_pos(len(unopened), self.remaining_mines)
+        the_p = [-1 for _ in range(0, len(unopened))]
+
+        for p in pos:
+            p_ok = True
+            for (x, y), (touches, ns) in boundary_state.items():
+                for xt, yt in ns:
+                    if p[u_2_n[(xt, yt)]] == 1:
+                        touches -= 1
+
+                if touches != 0:
+                    p_ok = False
+                    break
+
+            if p_ok:
+                for i in range(0, len(p)):
+                    if the_p[i] == -1:
+                        the_p[i] = p[i]
+                    elif the_p[i] != p[i]:
+                        the_p[i] = 2
+
+        found_something = False
+        for n, v in enumerate(the_p):
+            x, y = n_2_u[n]
+
+            if v == 0:
+                self.open_cell(x, y)
+                found_something = True
+            elif v == 1:
+                self.mark_mine(x, y)
+                found_something = True
+
+
+        if self.remaining_mines == 0:
+            # Maybe check that we should open any unopened cell
+            return self.string_rep()
+
+        elif found_something is False:
+            return '?'
+
+        else:
+            return self.solve()
+
+
 
 
 
