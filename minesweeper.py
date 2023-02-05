@@ -573,23 +573,73 @@ class Game():
                     else:
                         break
 
+            if y > 0:
+                column_l = [(x, y)]
 
-            if max(len(line_u), len(line_d)) < 3:
-                # So not optimal as well
-                continue
+                for xp in range(x-1, -1, -1):
+                    if (xp, y) in self.todo_merge and self.map[xp][y-1] == '?':
+                        # Not optimal
+                        column_l.insert(0, (xp, y))
+                    else:
+                        break
 
-            line = line_u if len(line_u) > len(line_d) else line_d
-            ox, oy = (0, 1) if len(line_u) > len(line_d) else (2, 1)
+                for xp in range(x+1, self.N):
+                    if (xp, y) in self.todo_merge and self.map[xp][y-1] == '?':
+                        column_l.append((xp, y))
+                    else:
+                        break
+
+            if y < self.M - 1:
+                column_r = [(x, y)]
+
+                for xp in range(x-1, -1, -1):
+                    if (xp, y) in self.todo_merge and self.map[xp][y+1] == '?':
+                        # Not optimal
+                        column_r.insert(0, (xp, y))
+                    else:
+                        break
+
+                for xp in range(x+1, self.N):
+                    if (xp, y) in self.todo_merge and self.map[xp][y+1] == '?':
+                        column_r.append((xp, y))
+                    else:
+                        break
 
 
-            # TODO: do the column, then understand which one is the best boundary
-            path = line
+            # m = max(len(line_u), len(line_d), len(column_l), len(column_r))
+            # if m < 2:
+                # # So not optimal as well
+                # continue
+
+            # if m == len(line_u):
+                # path = line_u
+                # ox, oy = 0, 1
+            # elif m == len(line_d):
+                # path = line_d
+                # ox, oy = 2, 1
+            # elif m == len(column_l):
+                # path = column_l
+                # ox, oy = 1, 0
+            # elif m == len(column_r):
+                # path = column_r
+                # ox, oy = 1, 2
+
+            # line = line_u if len(line_u) > len(line_d) else line_d
+            # ox, oy = (0, 1) if len(line_u) > len(line_d) else (2, 1)
+
+
+            # path = line
 
 
             # TODO: very inefficient, should keep track of the patterns we can't do anymore
-            found_something = self.deduce_path(path, ox, oy)
-            if found_something is True:
-                break
+
+            for path, ox, oy in [(line_u, 0, 1), (line_d, 2, 1), (column_l, 1, 0), (column_r, 1, 2)]:
+                if len(path) <= 1:
+                    continue
+
+                found_something = self.deduce_path(path, ox, oy)
+                if found_something is True:
+                    break
 
         # We changed something,update todo merge and try to resume simple guesses
         if found_something:
@@ -604,9 +654,11 @@ class Game():
         if zx == 0:
             next_squares = next_r
             moving_coord = 1
+            M = self.M
         elif zy == 0:
             next_squares = next_b
             moving_coord = 0
+            M = self.N
 
         pos = [[]]
         for x, y in path:
@@ -627,11 +679,12 @@ class Game():
             pos = _pos
 
         # Range tracks both real and path coordinates
+        # Using M like this is ugly, should detect which boundary the path touches
         the_range = [(i, ox, oy) for i in range(0, len(path))]
         if path[0][moving_coord] > 0:
             e = (0, ox - (1 if moving_coord == 0 else 0), oy - (1 if moving_coord == 1 else 0))
             the_range.insert(0, e)
-        if path[-1][moving_coord] < self.M - 1:
+        if path[-1][moving_coord] < M - 1:
             e = (len(path) - 1, ox + (1 if moving_coord == 0 else 0), oy + (1 if moving_coord == 1 else 0))
             the_range.append(e)
 
@@ -676,6 +729,14 @@ class Game():
                 break
 
         self.print()
+
+        # self.open_cell(11, 0)
+        # self.open_cell(12, 0)
+        # self.open_cell(13, 0)
+        # self.open_cell(13, 2)
+
+        self.print()
+        print(self.remaining_mines)
 
 
         if self.remaining_mines == 0:
