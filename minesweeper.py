@@ -496,7 +496,12 @@ class Game():
 
 
     def open_cell(self, x, y):
-        v = open(x, y)
+        try:
+            v = open(x, y)
+        except:
+            self.print()
+            print(x, y)
+            1/0
 
         if self.map[x][y] == v:
             return False
@@ -839,11 +844,20 @@ class Game():
                     break
 
             if p_ok:
+                print(p)
+
                 for i in range(0, len(p)):
                     if the_p[i] == -1:
                         the_p[i] = p[i]
                     elif the_p[i] != p[i]:
                         the_p[i] = 2
+
+        self.print()
+        print("=======================")
+        print(the_p)
+        print(n_2_u)
+
+
 
         found_something = False
         for n, v in enumerate(the_p):
