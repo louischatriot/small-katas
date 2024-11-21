@@ -1,3 +1,2 @@
-Small codewars katas
+Small and not so small codewars katas
 
-Some more text just because
