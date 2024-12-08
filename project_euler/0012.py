@@ -38,7 +38,6 @@ def get_number_of_divisors(n, primes = None):
     return math.prod(n + 1 for n in pfs_freq.values())
 
 
-
 primes = primes_until_n(100000000)
 target = 500
 
