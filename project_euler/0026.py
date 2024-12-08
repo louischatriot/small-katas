@@ -9,11 +9,10 @@ def get_cycle_length(n):
         c += 1
         r = (r * 10) % n
 
-        if c >= 2000:
-            if r in pos:
-                return c - pos[r]
-            else:
-                pos[r] = c
+        if r in pos:
+            return c - pos[r]
+        else:
+            pos[r] = c
 
 
 longest = 0
